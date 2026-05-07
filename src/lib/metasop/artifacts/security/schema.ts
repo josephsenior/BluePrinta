@@ -78,21 +78,23 @@ export const securitySchema = {
                 audit_logging: {
                     type: "object",
                     properties: {
-                        enabled: { type: "boolean" },
-                        retention: { type: "string", maxLength: 20 },
-                        storage_location: { type: "string", maxLength: 100 },
-                        events: { type: "array", items: { type: "string", maxLength: 30 } }
-                    }
+                        enabled: { type: "boolean", description: "Whether security audit logging is active." },
+                        retention: { type: "string", maxLength: 20, description: "Log retention period (e.g., '1 year')." },
+                        storage_location: { type: "string", maxLength: 100, description: "Where audit logs are stored (e.g., 'S3 bucket', 'CloudWatch')." },
+                        events: { type: "array", items: { type: "string", maxLength: 30 }, description: "Types of events being logged (e.g., 'login', 'read', 'delete')." }
+                    },
+                    description: "Traceability of security-relevant events and user actions."
                 },
                 session_management: {
                     type: "object",
                     properties: {
-                        strategy: { type: "string", enum: ["stateless", "stateful", "hybrid"] },
-                        session_timeout: { type: "string", maxLength: 10, description: "e.g., '30m'." },
-                        secure_cookies: { type: "boolean" },
-                        http_only_cookies: { type: "boolean" },
-                        same_site_policy: { type: "string", enum: ["Strict", "Lax", "None"] },
+                        strategy: { type: "string", enum: ["stateless", "stateful", "hybrid"], description: "Technical approach to session handling." },
+                        session_timeout: { type: "string", maxLength: 10, description: "Idle timeout duration (e.g., '30m')." },
+                        secure_cookies: { type: "boolean", description: "Enforces cookie transmission over HTTPS only." },
+                        http_only_cookies: { type: "boolean", description: "Prevents client-side script access to cookies." },
+                        same_site_policy: { type: "string", enum: ["Strict", "Lax", "None"], description: "Controls cookie sending on cross-site requests." },
                     },
+                    description: "Lifecycle and security parameters for user sessions."
                 },
                 authorization: {
                     type: "object",
@@ -242,18 +244,20 @@ export const securitySchema = {
         vulnerability_management: {
             type: "object",
             properties: {
-                scanning_frequency: { type: "string", maxLength: 50 },
-                tools: { type: "array", items: { type: "string", maxLength: 30 } },
-                remediation_sla: { type: "string", maxLength: 50 }
-            }
+                scanning_frequency: { type: "string", maxLength: 50, description: "How often vulnerabilities are scanned for (e.g., 'Daily', 'Per commit')." },
+                tools: { type: "array", items: { type: "string", maxLength: 30 }, description: "Security scanning tools (e.g., Snyk, Dependabot, SonarQube)." },
+                remediation_sla: { type: "string", maxLength: 50, description: "SLA for patching discovered vulnerabilities (e.g., 'Critical: 24h')." }
+            },
+            description: "Process for identifying and remediating security weaknesses."
         },
         security_monitoring: {
             type: "object",
             properties: {
-                logging_strategy: { type: "string", maxLength: 200 },
-                siem_solution: { type: "string", maxLength: 50 },
-                alerting_thresholds: { type: "string", maxLength: 200 }
-            }
+                logging_strategy: { type: "string", maxLength: 200, description: "Overall plan for gathering security logs." },
+                siem_solution: { type: "string", maxLength: 50, description: "SIEM tool for log analysis (e.g., 'Splunk', 'Azure Sentinel')." },
+                alerting_thresholds: { type: "string", maxLength: 200, description: "Conditions that trigger security alerts." }
+            },
+            description: "Real-time visibility and alerting for security incidents."
         },
         compliance: {
             type: "array",
@@ -263,17 +267,20 @@ export const securitySchema = {
                 properties: {
                     standard: {
                         type: "string",
-                        enum: ["GDPR", "HIPAA", "SOC2", "PCI-DSS", "ISO27001", "CCPA", "other"]
+                        enum: ["GDPR", "HIPAA", "SOC2", "PCI-DSS", "ISO27001", "CCPA", "other"],
+                        description: "The specific compliance framework or regulatory standard."
                     },
                     requirements: {
                         type: "array",
-                        items: { type: "string", maxLength: 100 }
+                        items: { type: "string", maxLength: 100 },
+                        description: "Individual technical or procedural requirements of the standard."
                     },
                     implementation_status: {
                         type: "string",
-                        enum: ["planned", "in-progress", "compliant"]
+                        enum: ["planned", "in-progress", "compliant"],
+                        description: "Current compliance level for this standard."
                     },
-                    description: { type: "string", maxLength: 200 }
+                    description: { type: "string", maxLength: 200, description: "Detailed summary of how the standard is being met." }
                 }
             }
         },
@@ -284,13 +291,13 @@ export const securitySchema = {
                 type: "object",
                 required: ["control", "implementation"],
                 properties: {
-                    id: { type: "string", maxLength: 10 },
-                    control: { type: "string", minLength: 10, maxLength: 100, description: "Control name (min 10 chars)." },
-                    type: { type: "string", maxLength: 30 },
-                    category: { type: "string", enum: ["preventive", "detective", "corrective", "compensating"] },
-                    implementation: { type: "string", minLength: 10, maxLength: 200, description: "Implementation details (min 10 chars)." },
-                    priority: { type: "string", enum: ["critical", "high", "medium", "low"] },
-                    description: { type: "string", maxLength: 200 }
+                    id: { type: "string", maxLength: 10, description: "Unique control identifier (e.g., 'SEC-01')." },
+                    control: { type: "string", minLength: 10, maxLength: 100, description: "Name/Title of the security control." },
+                    type: { type: "string", maxLength: 30, description: "Security control type (e.g., 'Technical', 'Administrative')." },
+                    category: { type: "string", enum: ["preventive", "detective", "corrective", "compensating"], description: "Functional category of the control." },
+                    implementation: { type: "string", minLength: 10, maxLength: 200, description: "How the control is technically implemented." },
+                    priority: { type: "string", enum: ["critical", "high", "medium", "low"], description: "Relative importance of this control." },
+                    description: { type: "string", maxLength: 200, description: "Purpose and desired outcome of the control." }
                 }
             }
         }

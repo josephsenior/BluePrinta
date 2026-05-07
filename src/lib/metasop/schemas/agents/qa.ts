@@ -2,35 +2,35 @@ import { z } from "zod";
 
 const CoverageSchema = z
     .object({
-        percentage: z.number().min(0).max(100),
-        threshold: z.number().min(0).max(100),
-        lines: z.number().min(0).max(100),
-        statements: z.number().min(0).max(100),
-        functions: z.number().min(0).max(100),
-        branches: z.number().min(0).max(100),
+        percentage: z.number().min(0).max(100).describe("Overall code coverage percentage (0-100)."),
+        threshold: z.number().min(0).max(100).describe("Target coverage threshold percentage."),
+        lines: z.number().min(0).max(100).describe("Percentage of lines covered."),
+        statements: z.number().min(0).max(100).describe("Percentage of statements covered."),
+        functions: z.number().min(0).max(100).describe("Percentage of functions covered."),
+        branches: z.number().min(0).max(100).describe("Percentage of branches covered."),
     })
     .strict();
 
 const PerformanceMetricsSchema = z
     .object({
-        api_response_time_p95: z.string(),
-        page_load_time: z.string(),
-        database_query_time: z.string(),
-        first_contentful_paint: z.string(),
-        time_to_interactive: z.string(),
-        largest_contentful_paint: z.string(),
+        api_response_time_p95: z.string().describe("P95 API response time target (e.g., '200ms')."),
+        page_load_time: z.string().describe("Target total page load time (e.g., '1.5s')."),
+        database_query_time: z.string().describe("Maximum acceptable database query latency."),
+        first_contentful_paint: z.string().describe("FCP target for web performance."),
+        time_to_interactive: z.string().describe("TTI target for web performance."),
+        largest_contentful_paint: z.string().describe("LCP target for core web vitals."),
     })
     .strict();
 
 export const QAArtifactSchema = z.object({
     ok: z.boolean(), // REQUIRED
     test_strategy: z.object({
-        unit: z.string().min(10, "Unit test strategy must be descriptive"), // REQUIRED
-        integration: z.string().min(10, "Integration test strategy must be descriptive"), // REQUIRED
-        e2e: z.string().min(10, "E2E test strategy must be descriptive"), // REQUIRED
-        approach: z.string().optional(),
-        types: z.array(z.string()).optional(),
-        tools: z.array(z.string()).optional(),
+        unit: z.string().min(10, "Unit test strategy must be descriptive").describe("Strategy for component-level testing."),
+        integration: z.string().min(10, "Integration test strategy must be descriptive").describe("Strategy for testing module interactions."),
+        e2e: z.string().min(10, "E2E test strategy must be descriptive").describe("Strategy for full user-flow validation."),
+        approach: z.string().optional().describe("General philosophical approach to testing (e.g., TDD)."),
+        types: z.array(z.string()).optional().describe("Categories of tests being applied."),
+        tools: z.array(z.string()).optional().describe("Testing frameworks and libraries (e.g., Vitest, Playwright)."),
     }), // REQUIRED
     test_cases: z.array(
         z.object({
@@ -62,15 +62,15 @@ export const QAArtifactSchema = z.object({
     coverage: CoverageSchema, // REQUIRED
     performance_metrics: PerformanceMetricsSchema, // REQUIRED
     accessibility_plan: z.object({
-        standard: z.enum(["WCAG 2.0 A", "WCAG 2.0 AA", "WCAG 2.0 AAA", "WCAG 2.1 A", "WCAG 2.1 AA", "WCAG 2.1 AAA", "WCAG 2.2 A", "WCAG 2.2 AA", "WCAG 2.2 AAA"]).optional(),
-        automated_tools: z.array(z.string().max(30)).optional(),
-        manual_checks: z.array(z.string().max(100)).optional(),
-        screen_readers: z.array(z.string().max(20)).optional(),
+        standard: z.enum(["WCAG 2.0 A", "WCAG 2.0 AA", "WCAG 2.0 AAA", "WCAG 2.1 A", "WCAG 2.1 AA", "WCAG 2.1 AAA", "WCAG 2.2 A", "WCAG 2.2 AA", "WCAG 2.2 AAA"]),
+        automated_tools: z.array(z.string().max(30)),
+        manual_checks: z.array(z.string().max(100)),
+        screen_readers: z.array(z.string().max(20)),
     }).strict(),
     manual_uat_plan: z.object({
-        scenarios: z.array(z.string().max(150)).optional(),
-        acceptance_criteria: z.array(z.string().max(150)).optional(),
-        stakeholders: z.array(z.string().max(50)).optional(),
+        scenarios: z.array(z.string().max(150)),
+        acceptance_criteria: z.array(z.string().max(150)),
+        stakeholders: z.array(z.string().max(50)),
     }).strict(),
 }).strict();
 

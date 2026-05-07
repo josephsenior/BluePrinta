@@ -70,20 +70,6 @@ export function BlueprintSection({
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">{spec.description}</p>
                         <div className="space-y-2 pt-2 border-t border-border/40">
-                            {spec.props && Array.isArray(spec.props) && (
-                                <div className="grid grid-cols-1 gap-2 text-[10px]">
-                                    {spec.props.map((p: any, idx: number) => (
-                                        <div key={idx} className="flex flex-col gap-1 bg-muted/30 px-2 py-2 rounded">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-mono font-bold text-foreground">{p.name}</span>
-                                                <Badge variant="outline" className="text-[8px] h-4 uppercase">{p.type}</Badge>
-                                            </div>
-                                            {p.description && <p className="text-muted-foreground/80 italic">{p.description}</p>}
-                                            {p.default && <div className="text-[8px] text-muted-foreground/60 mt-0.5">Default: <span className="font-mono">{p.default}</span></div>}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                             <div className="flex flex-wrap gap-1.5 mt-2">
                                 {spec.variants?.map((v: string) => (
                                     <Badge key={v} variant="outline" className="text-[8px] h-4 bg-primary/5 text-primary/60 border-primary/10">Variant: {v}</Badge>

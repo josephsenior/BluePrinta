@@ -158,11 +158,7 @@ EXAMPLE COMPONENT SPEC (UI Designer):
   "name": "Button",
   "category": "atom",
   "description": "Primary interactive element for actions like 'Add to Cart' or 'Checkout'.",
-  "props": [
-    { "name": "variant", "type": "string", "default": "primary", "description": "Visual style: primary, secondary, ghost" },
-    { "name": "size", "type": "string", "default": "md", "description": "Size: sm, md, lg" },
-    { "name": "isLoading", "type": "boolean", "default": "false", "description": "Shows spinner when true" }
-  ],
+  "description": "Primary interactive element for actions like 'Add to Cart' or 'Checkout'.",
   "variants": ["primary", "secondary", "ghost", "danger"],
   "sizes": ["sm", "md", "lg"],
   "states": ["default", "hover", "active", "disabled", "loading"],

@@ -25,12 +25,13 @@ describe("Logger", () => {
       (logger as any).isDevelopment = false;
     });
 
-    it("should not log debug messages in production", () => {
-      (logger as any).isDevelopment = false;
-      logger.debug("Debug message");
+        it("should NOT log debug messages in production", () => {
+            (logger as any).isDevelopment = false;
+            logger.debug("Debug message");
 
-      expect(console.debug).not.toHaveBeenCalled();
-    });
+            // In production (isDevelopment = false), debug logs should be suppressed
+            expect(console.debug).not.toHaveBeenCalled();
+          });
   });
 
   describe("info", () => {
@@ -76,4 +77,3 @@ describe("Logger", () => {
     });
   });
 });
-

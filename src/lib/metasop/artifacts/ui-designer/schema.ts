@@ -1,8 +1,8 @@
 
 export const uiDesignerSchema = {
     type: "object",
-    required: ["component_hierarchy", "design_tokens", "summary", "description", "ui_patterns", "component_specs", "layout_breakpoints", "accessibility", "atomic_structure", "website_layout"],
-    propertyOrdering: ["summary", "description", "website_layout", "accessibility", "ui_patterns", "layout_breakpoints", "component_specs", "atomic_structure", "design_tokens", "component_hierarchy"],
+    required: ["component_hierarchy", "design_tokens", "summary", "description", "ui_patterns", "component_specs", "layout_breakpoints", "atomic_structure", "website_layout"],
+    propertyOrdering: ["summary", "description", "website_layout", "ui_patterns", "layout_breakpoints", "component_specs", "atomic_structure", "design_tokens", "component_hierarchy"],
     properties: {
         summary: { type: "string", maxLength: 300, description: "A technical, 1-2 sentence summary of the UI strategy and design system approach. No conversational filler." },
         description: { type: "string", maxLength: 600, description: "Detailed visual design philosophy, brand alignment, and design principles." },
@@ -10,34 +10,31 @@ export const uiDesignerSchema = {
             type: "object",
             required: ["root"],
             properties: {
-                root: { type: "string", maxLength: 40, description: "Root component name (e.g., 'App')." },
+                root: { type: "string", maxLength: 100, description: "Root component name (e.g., 'App')." },
                 children: {
                     type: "array",
                     items: {
-                        type: "object",
-                        required: ["name"],
+                        required: ["name", "description"],
                         properties: {
-                            name: { type: "string", maxLength: 40, description: "Component name (e.g., 'Button')." },
-                            props: {
-                                type: "array",
-                                items: { type: "string", maxLength: 30 },
-                                description: "Key component props (e.g., 'title: string').",
-                            },
+                            name: { type: "string", maxLength: 100, description: "Component name (e.g., 'Button')." },
+                            description: { type: "string", maxLength: 100, description: "Purpose of this component." },
+                            // Removed props as requested
                             children: {
                                 type: "array",
                                 description: "Child components (recursive).",
                                 items: {
                                     type: "object",
                                     properties: {
-                                        name: { type: "string", maxLength: 20 },
-                                        props: { type: "array", items: { type: "string", maxLength: 30 } },
+                                        name: { type: "string", maxLength: 80 },
+                                        description: { type: "string", maxLength: 50 },
+                                        // Removed props as requested
                                         children: {
                                             type: "array",
                                             description: "Child components (recursive)",
                                             items: {
                                                 type: "object",
                                                 properties: {
-                                                    name: { type: "string", maxLength: 20, description: "Nested child component name." },
+                                                    name: { type: "string", maxLength: 80, description: "Nested child component name." },
                                                 }
                                             },
                                         },
@@ -90,7 +87,7 @@ export const uiDesignerSchema = {
                     description: "Spacing scale using REM units.",
                     required: ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
                     properties: {
-                        xs: { type: "string", pattern: "^[0-9.]+(rem|px)$", description: "Extra small spacing (e.g., '0.25rem')." },
+                        xs: { type: "string", pattern: "^[0-9.]+(rem|px)$", description: "Extra small spacing." },
                         sm: { type: "string", pattern: "^[0-9.]+(rem|px)$", description: "Small spacing." },
                         md: { type: "string", pattern: "^[0-9.]+(rem|px)$", description: "Medium spacing." },
                         lg: { type: "string", pattern: "^[0-9.]+(rem|px)$", description: "Large spacing." },
@@ -110,35 +107,38 @@ export const uiDesignerSchema = {
                             type: "object",
                             required: ["xs", "sm", "base", "lg", "xl", "2xl", "3xl"],
                             properties: {
-                                xs: { type: "string", description: "e.g., '0.75rem'" },
-                                sm: { type: "string", description: "e.g., '0.875rem'" },
-                                base: { type: "string", description: "e.g., '1rem'" },
-                                lg: { type: "string", description: "e.g., '1.125rem'" },
-                                xl: { type: "string", description: "e.g., '1.25rem'" },
-                                "2xl": { type: "string", description: "e.g., '1.5rem'" },
-                                "3xl": { type: "string", description: "e.g., '1.875rem'" },
+                                xs: { type: "string", description: "Extra small font size." },
+                                sm: { type: "string", description: "Small font size." },
+                                base: { type: "string", description: "Base font size." },
+                                lg: { type: "string", description: "Large font size." },
+                                xl: { type: "string", description: "Extra large font size." },
+                                "2xl": { type: "string", description: "2X large font size." },
+                                "3xl": { type: "string", description: "3X large font size." },
                             },
+                            description: "Font size scale using REM units."
                         },
                         fontWeight: {
                             type: "object",
                             required: ["light", "normal", "medium", "semibold", "bold"],
                             properties: {
-                                light: { type: "string", description: "e.g., '300'" },
-                                normal: { type: "string", description: "e.g., '400'" },
-                                medium: { type: "string", description: "e.g., '500'" },
-                                semibold: { type: "string", description: "e.g., '600'" },
-                                bold: { type: "string", description: "e.g., '700'" },
+                                light: { type: "string", description: "Light weight (e.g., '300')." },
+                                normal: { type: "string", description: "Normal/Regular weight (e.g., '400')." },
+                                medium: { type: "string", description: "Medium weight (e.g., '500')." },
+                                semibold: { type: "string", description: "Semi-bold weight (e.g., '600')." },
+                                bold: { type: "string", description: "Bold weight (e.g., '700')." },
                             },
+                            description: "Standard numeric font weights."
                         },
                         lineHeight: {
                             type: "object",
                             required: ["tight", "normal", "relaxed", "loose"],
                             properties: {
-                                tight: { type: "string", description: "e.g., '1.25'" },
-                                normal: { type: "string", description: "e.g., '1.5'" },
-                                relaxed: { type: "string", description: "e.g., '1.625'" },
-                                loose: { type: "string", description: "e.g., '2'" },
+                                tight: { type: "string", description: "Tight line height (e.g., '1.25')." },
+                                normal: { type: "string", description: "Normal line height (e.g., '1.5')." },
+                                relaxed: { type: "string", description: "Relaxed line height (e.g., '1.625')." },
+                                loose: { type: "string", description: "Loose line height (e.g., '2')." },
                             },
+                            description: "Line height/leading ratios."
                         },
                     },
                 },
@@ -185,33 +185,22 @@ export const uiDesignerSchema = {
             type: "array",
             items: {
                 type: "object",
-                required: ["name", "description"],
+                required: ["name", "description", "category", "variants", "sizes", "states", "accessibility"],
                 properties: {
-                    name: { type: "string", maxLength: 50, description: "Component name (e.g., 'Button', 'Modal')." },
+                    name: { type: "string", maxLength: 100, description: "Component name (e.g., 'Button', 'Modal')." },
                     category: { type: "string", enum: ["atom", "molecule", "organism", "template"], description: "Atomic design category." },
                     description: { type: "string", maxLength: 200, description: "Component purpose and usage guidelines." },
-                    props: {
-                        type: "array",
-                        items: {
-                            type: "object",
-                            properties: {
-                                name: { type: "string", maxLength: 30 },
-                                type: { type: "string", maxLength: 50 },
-                                default: { type: "string", maxLength: 30 },
-                                description: { type: "string", maxLength: 100 }
-                            }
-                        },
-                        description: "Component props with types and defaults."
-                    },
+                    // Removed props as requested
                     variants: { type: "array", items: { type: "string", maxLength: 30 }, description: "Visual variants (primary, secondary, ghost)." },
                     sizes: { type: "array", items: { type: "string", maxLength: 10 }, description: "Size variants (sm, md, lg)." },
                     states: { type: "array", items: { type: "string", maxLength: 20 }, description: "Interactive states (hover, active, disabled, loading)." },
                     accessibility: {
                         type: "object",
+                        required: ["role", "aria_label", "keyboard"],
                         properties: {
-                            role: { type: "string", maxLength: 30 },
-                            aria_label: { type: "string", maxLength: 100 },
-                            keyboard: { type: "string", maxLength: 100 }
+                            role: { type: "string", maxLength: 30, description: "WAI-ARIA role (e.g., 'button', 'alert')." },
+                            aria_label: { type: "string", maxLength: 100, description: "Descriptive label for screen readers." },
+                            keyboard: { type: "string", maxLength: 100, description: "Expected keyboard interactions (e.g., 'Enter to activate')." }
                         },
                         description: "Accessibility requirements for this component."
                     }
@@ -221,6 +210,7 @@ export const uiDesignerSchema = {
         },
         layout_breakpoints: {
             type: "object",
+            required: ["sm", "md", "lg", "xl", "2xl"],
             properties: {
                 sm: { type: "string", maxLength: 15, description: "Small breakpoint (e.g., '640px')" },
                 md: { type: "string", maxLength: 15, description: "Medium breakpoint (e.g., '768px')" },
@@ -229,20 +219,6 @@ export const uiDesignerSchema = {
                 "2xl": { type: "string", maxLength: 15, description: "2X large breakpoint (e.g., '1536px')" },
             },
             description: "Responsive breakpoints",
-        },
-        accessibility: {
-            type: "object",
-            properties: {
-                standard: { type: "string", maxLength: 50, description: "Accessibility standard used (e.g., 'WCAG 2.1')." },
-                guidelines: { type: "array", items: { type: "string", maxLength: 200 }, description: "List of key accessibility guidelines." },
-                checklist: { type: "array", items: { type: "string", maxLength: 200 }, description: "Checklist of accessibility tasks." },
-                aria_labels: { type: "boolean", description: "Use ARIA labels" },
-                keyboard_navigation: { type: "boolean", description: "Support keyboard navigation" },
-                screen_reader_support: { type: "boolean", description: "Support screen readers" },
-                wcag_level: { type: "string", enum: ["A", "AA", "AAA"], description: "WCAG compliance level target." },
-                focus_indicators: { type: "boolean", description: "Visible focus indicators" },
-            },
-            description: "Accessibility requirements",
         },
         atomic_structure: {
             type: "object",
@@ -263,18 +239,19 @@ export const uiDesignerSchema = {
                         type: "object",
                         required: ["name", "route", "sections"],
                         properties: {
-                            name: { type: "string", maxLength: 50, description: "Page name (e.g., 'Dashboard')." },
-                            route: { type: "string", maxLength: 100, description: "URL route (e.g., '/dashboard')." },
+                            name: { type: "string", maxLength: 50, description: "Page title or name (e.g., 'Home')." },
+                            route: { type: "string", maxLength: 100, description: "Application route path (e.g., '/')." },
                             sections: {
                                 type: "array",
                                 items: {
                                     type: "object",
-                                    required: ["name"],
+                                    required: ["name", "components"],
                                     properties: {
-                                        name: { type: "string", maxLength: 50, description: "Section name (e.g., 'Hero')." },
-                                        components: { type: "array", items: { type: "string", maxLength: 50 }, description: "List of components in this section." },
+                                        name: { type: "string", maxLength: 50, description: "Logical section name (e.g., 'Features')." },
+                                        components: { type: "array", items: { type: "string", maxLength: 50 }, description: "Specific components rendered in this section." },
                                     }
-                                }
+                                },
+                                description: "Sequential sections that make up the page content."
                             }
                         }
                     }

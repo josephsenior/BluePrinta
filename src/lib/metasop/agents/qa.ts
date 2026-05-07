@@ -26,30 +26,31 @@ export async function qaAgent(
     let content: QABackendArtifact;
 
     const pmArtifact = pmSpec?.content as any;
-      const archArtifact = archDesign?.content as ArchitectBackendArtifact | undefined;
-      const engineerArtifact = engineerImpl?.content as any;
-      const securityArtifact = context.previous_artifacts?.security_architecture?.content as any;
-      const uiArtifact = context.previous_artifacts?.ui_design?.content as any;
-      const projectTitle = pmArtifact?.summary?.substring(0, 50) || "Project";
-      const techStackString = archArtifact?.technology_stack ? Object.values(archArtifact.technology_stack).flat().join(", ") : "Modern Stack";
+    const archArtifact = archDesign?.content as ArchitectBackendArtifact | undefined;
+    const engineerArtifact = engineerImpl?.content as any;
+    const securityArtifact = context.previous_artifacts?.security_architecture?.content as any;
+    const uiArtifact = context.previous_artifacts?.ui_design?.content as any;
+    const projectTitle = pmArtifact?.summary?.substring(0, 50);
+    const techStackString = archArtifact?.technology_stack ? Object.values(archArtifact.technology_stack).flat().join(", ") : "";
 
-      const domainContext = getDomainContext(user_request);
-      const qualityCheck = getQualityCheckPrompt("qa");
+    const domainContext = getDomainContext(user_request);
+    const qualityCheck = getQualityCheckPrompt("qa");
 
-      const qaPrompt = `You are a Lead QA Engineer and ISTQB-certified Test Architect with 10+ years of experience in test automation, quality strategy, and continuous testing. Design a comprehensive verification strategy for:
+    const qaPrompt = `You are a Lead QA Engineer and ISTQB-certified Test Architect with 10+ years of experience in test automation, quality strategy, and continuous testing. Design a comprehensive verification strategy for:
 
 "${projectTitle}"
 
 === OUTPUT RULES ===
 - Give each test case a unique ID (max 10 chars, e.g. TC-1, TC-2, TC-01) and a unique title. One scenario per test; no duplicate IDs or titles.
 - Cover auth, CRUD, validation, error handling, security, and performance where relevant. Stop after scope is covered.
+- MANDATORY: You MUST provide all performance_metrics, accessibility_plan, and manual_uat_plan fields. No skipping.
 - Response: Output only the JSON object matching the schema. No markdown, no explanations.
 
 ${pmArtifact ? `
 Project Context:
 - Summary: ${pmArtifact.summary}
 - User Stories: ${pmArtifact.user_stories?.length || 0} stories defined
-- Key Stories: ${pmArtifact.user_stories?.slice(0, 4).map((s: any) => s.title).join(", ") || "N/A"}
+- Key Stories: ${pmArtifact.user_stories?.slice(0, 4).map((s: any) => s.title).join(", ") || ""}
 - Acceptance Criteria: ${pmArtifact.acceptance_criteria?.length || 0} criteria defined` : `User Request: ${user_request}`}
 ${archArtifact ? `
 Architecture Context:
@@ -58,16 +59,16 @@ Architecture Context:
 - Database Tables: ${archArtifact.database_schema?.tables?.length || 0} tables` : ""}
 ${engineerArtifact ? `
 Implementation Context:
-- Technical Patterns: ${engineerArtifact.technical_patterns?.join(", ") || "N/A"}
-- Test Commands: ${engineerArtifact.run_results?.test_commands?.join(", ") || "N/A"}` : ""}
+- Technical Patterns: ${engineerArtifact.technical_patterns?.join(", ") || ""}
+- Test Commands: ${engineerArtifact.run_results?.test_commands?.join(", ") || ""}` : ""}
 ${securityArtifact ? `
 Security Context:
-- Auth Method: ${securityArtifact.security_architecture?.authentication?.method || "JWT"}
+- Auth Method: ${securityArtifact.security_architecture?.authentication?.method || ""}
 - Threat Count: ${securityArtifact.threat_model?.length || 0} threats identified` : ""}
 ${uiArtifact ? `
 UI Context:
 - Components: ${uiArtifact.component_hierarchy?.organisms?.length || 0} organisms
-- Accessibility: ${uiArtifact.accessibility?.wcag_level || "AA"} compliance target` : ""}
+- Accessibility: ${uiArtifact.accessibility?.wcag_level || ""} compliance target` : ""}
 ${domainContext ? `\n${domainContext}\n` : ""}
 
 === MISSION OBJECTIVES ===
@@ -188,48 +189,48 @@ ${qualityCheck}
 
 Respond with ONLY the structured JSON object matching the schema. No explanations or markdown.`;
 
-      let llmQA: QABackendArtifact | null = null;
+    let llmQA: QABackendArtifact | null = null;
 
-      try {
-        llmQA = await generateStreamingStructuredWithLLM<QABackendArtifact>(
-          qaPrompt,
-          qaSchema,
-          (partialEvent) => {
-            if (onProgress) {
-              onProgress(partialEvent);
-            }
-          },
-          {
-            reasoning: context.options?.reasoning ?? false,
-            temperature: getAgentTemperature("qa_verification"),
-            cacheId: context.cacheId,
-            role: "QA",
-            model: context.options?.model
+    try {
+      llmQA = await generateStreamingStructuredWithLLM<QABackendArtifact>(
+        qaPrompt,
+        qaSchema,
+        (partialEvent) => {
+          if (onProgress) {
+            onProgress(partialEvent);
           }
-        );
-      } catch (error: any) {
-        logger.error("QA agent LLM call failed", { error: error.message });
-        throw error;
-      }
+        },
+        {
+          reasoning: context.options?.reasoning ?? false,
+          temperature: getAgentTemperature("qa_verification"),
+          cacheId: context.cacheId,
+          role: "QA",
+          model: context.options?.model
+        }
+      );
+    } catch (error: any) {
+      logger.error("QA agent LLM call failed", { error: error.message });
+      throw error;
+    }
 
-      if (!llmQA) {
-        throw new Error("QA agent failed: No structured data received from LLM");
-      }
+    if (!llmQA) {
+      throw new Error("QA agent failed: No structured data received from LLM");
+    }
 
-      content = {
-        ok: llmQA.ok ?? true,
-        test_strategy: llmQA.test_strategy,
-        test_cases: llmQA.test_cases,
-        security_plan: llmQA.security_plan,
-        manual_verification_steps: llmQA.manual_verification_steps,
-        risk_analysis: llmQA.risk_analysis,
-        summary: llmQA.summary,
-        description: llmQA.description,
-        coverage: llmQA.coverage,
-        performance_metrics: llmQA.performance_metrics,
-        accessibility_plan: llmQA.accessibility_plan || (llmQA as any).accessibility,
-        manual_uat_plan: llmQA.manual_uat_plan,
-      };
+    content = {
+      ok: llmQA.ok,
+      test_strategy: llmQA.test_strategy,
+      test_cases: llmQA.test_cases,
+      security_plan: llmQA.security_plan,
+      manual_verification_steps: llmQA.manual_verification_steps,
+      risk_analysis: llmQA.risk_analysis,
+      summary: llmQA.summary,
+      description: llmQA.description,
+      coverage: llmQA.coverage,
+      performance_metrics: llmQA.performance_metrics,
+      accessibility_plan: llmQA.accessibility_plan,
+      manual_uat_plan: llmQA.manual_uat_plan,
+    };
 
     logger.info("QA agent completed");
 

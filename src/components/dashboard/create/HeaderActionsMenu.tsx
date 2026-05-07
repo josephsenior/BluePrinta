@@ -4,8 +4,7 @@ import { useRouter } from "next/navigation"
 import {
     MoreHorizontal,
     Save,
-    FileText,
-    Download
+    FileText
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,7 +15,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { DiagramData } from "@/hooks/use-diagram-generation"
-import { appendGuestSession } from "@/lib/utils/url"
 
 interface HeaderActionsMenuProps {
     currentDiagram: DiagramData | null
@@ -33,11 +31,6 @@ export function HeaderActionsMenu({
 }: HeaderActionsMenuProps) {
     const router = useRouter()
 
-    const handleExportPdf = () => {
-        const base = `/api/diagrams/${currentDiagram?.id}/export?artifact=documentation&format=pdf`
-        const url = appendGuestSession(base)
-        window.location.href = url
-    }
 
     return (
         <DropdownMenu>
@@ -82,14 +75,6 @@ export function HeaderActionsMenu({
                     <span>Export Context</span>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
-                    onClick={handleExportPdf}
-                    disabled={!currentDiagram?.id}
-                    className="group flex items-center gap-2 cursor-pointer rounded-lg px-2.5 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted focus:outline-hidden transition-colors"
-                >
-                    <Download className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    <span>Export PDF Specs</span>
-                </DropdownMenuItem>
 
             </DropdownMenuContent>
         </DropdownMenu>

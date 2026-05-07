@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { fetchDiagramApi } from "@/lib/api/diagram-fetch"
 import { useToast } from "@/components/ui/use-toast"
-import type { 
-    MetaSOPArtifact, 
+import type {
+    MetaSOPArtifact,
     MetaSOPEvent,
     BackendArtifactData,
     ProductManagerBackendArtifact,
@@ -173,7 +173,7 @@ export function useDiagramGeneration() {
 
             const savedGuided = localStorage.getItem("metasop_guided_mode")
             if (savedGuided !== null) setGuidedMode(savedGuided === "true")
-            
+
             const savedDocs = localStorage.getItem("metasop_uploaded_documents")
             if (savedDocs) {
                 try {
@@ -317,10 +317,10 @@ export function useDiagramGeneration() {
 
             const handleEvent = (event: MetaSOPEvent) => {
                 const { type, step_id } = event;
-                
+
                 setGenerationSteps(prev => {
                     const currentSteps = prev.length > 0 ? prev : INITIAL_STEPS;
-                    
+
                     if (type === "step_start" && step_id) {
                         stepStartTimesRef.current.set(step_id, Date.now());
                         activeStepIdRef.current = step_id;
@@ -341,7 +341,7 @@ export function useDiagramGeneration() {
 
                         if (elapsed < minDisplayTime) {
                             const timeoutId = setTimeout(() => {
-                                setGenerationSteps(latest => latest.map(s => 
+                                setGenerationSteps(latest => latest.map(s =>
                                     s.step_id === step_id ? { ...s, status: "success" as const } : s
                                 ));
                                 stepStartTimesRef.current.delete(step_id);
@@ -354,8 +354,11 @@ export function useDiagramGeneration() {
                             return baseSteps.map(s => s.step_id === step_id ? { ...s, status: "success" as const } : s);
                         }
                     } else if (type === "step_failed" && step_id) {
-                        const { error } = event
-                        return currentSteps.map(s => s.step_id === step_id ? { ...s, status: "failed" as const, error } : s);
+                        const { error, partial_response } = event
+                        return currentSteps.map(s => s.step_id === step_id ? { ...s, status: "failed" as const, error, partial_response } : s);
+                    } else if (type === "agent_progress" && step_id) {
+                        const { partial_content } = event
+                        return currentSteps.map(s => s.step_id === step_id ? { ...s, partial_response: partial_content } : s);
                     } else if (type === "orchestration_complete") {
                         return currentSteps.map(s =>
                             (s.status === "running" || s.status === "pending") ? { ...s, status: "success" as const } : s
@@ -390,7 +393,7 @@ export function useDiagramGeneration() {
                 if (done) break;
 
                 buffer += decoder.decode(value, { stream: true });
-                
+
                 // Handle potential \r\n and split by standard SSE double-newline
                 const normalizedBuffer = buffer.replace(/\r\n/g, "\n");
                 const parts = normalizedBuffer.split("\n\n");
@@ -402,7 +405,7 @@ export function useDiagramGeneration() {
                         .filter(l => l.startsWith("data:"))
                         .map(l => l.replace(/^data:\s?/, ""))
                         .join("\n");
-                    
+
                     if (dataStr && dataStr !== "[DONE]") {
                         try {
                             const parsed: unknown = JSON.parse(dataStr)
@@ -410,7 +413,7 @@ export function useDiagramGeneration() {
 
                             const event = parsed as MetaSOPEvent
                             const { type, step_id } = event
-                            
+
                             // Capture summaries & thoughts outside the steps state updater to avoid double-rendering issues
                             if (type === "step_thought" && step_id) {
                                 const thought = typeof event.thought === 'string' ? event.thought : "";
@@ -499,10 +502,10 @@ export function useDiagramGeneration() {
             }
             await doStartGeneration()
         } catch (e) {
-            toast({ 
-                title: "Scoping failed", 
-                description: e instanceof Error ? e.message : "Could not check scope", 
-                variant: "destructive" 
+            toast({
+                title: "Scoping failed",
+                description: e instanceof Error ? e.message : "Could not check scope",
+                variant: "destructive"
             })
         } finally {
             setIsScoping(false)

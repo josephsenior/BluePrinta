@@ -24,13 +24,13 @@ export async function securityAgent(
     let content: SecurityBackendArtifact;
 
     const pmArtifact = pmSpec?.content as any;
-      const archArtifact = archDesign?.content as any;
-      const projectTitle = pmArtifact?.summary?.substring(0, 50) || "Project";
-      
-      const domainContext = getDomainContext(user_request);
-      const qualityCheck = getQualityCheckPrompt("security");
+    const archArtifact = archDesign?.content as any;
+    const projectTitle = pmArtifact?.summary?.substring(0, 50);
 
-      const securityPrompt = `You are a Principal Security Architect and CISSP with 12+ years of experience in application security, threat modeling, and compliance frameworks. Design a comprehensive security architecture for:
+    const domainContext = getDomainContext(user_request);
+    const qualityCheck = getQualityCheckPrompt("security");
+
+    const securityPrompt = `You are a Principal Security Architect and CISSP with 12+ years of experience in application security, threat modeling, and compliance frameworks. Design a comprehensive security architecture for:
 
 "${projectTitle}"
 
@@ -49,7 +49,7 @@ ${TECHNICAL_STANDARDS.security}
 === MISSION OBJECTIVES ===
 
 1. **STRIDE Threat Modeling**
-   - Provide at least 2 distinct threats (required by schema).
+   - Provide distinct threats (required by schema).
    - Analyze each threat category systematically:
      * **S**poofing: Identity theft, credential compromise
      * **T**ampering: Data modification, SQL injection, parameter manipulation
@@ -123,58 +123,58 @@ ${qualityCheck}
 
 Respond with ONLY the structured JSON object matching the schema. No explanations or markdown.`;
 
-      let llmSecurity: SecurityBackendArtifact | null = null;
+    let llmSecurity: SecurityBackendArtifact | null = null;
 
-      try {
-        llmSecurity = await generateStreamingStructuredWithLLM<SecurityBackendArtifact>(
-          securityPrompt,
-          securitySchema,
-          (partialEvent) => {
-            if (onProgress) {
-              onProgress(partialEvent);
-            }
-          },
-          {
-            reasoning: context.options?.reasoning ?? false,
-            temperature: getAgentTemperature("security_architecture"),
-            cacheId: context.cacheId,
-            role: "Security",
-            model: context.options?.model
+    try {
+      llmSecurity = await generateStreamingStructuredWithLLM<SecurityBackendArtifact>(
+        securityPrompt,
+        securitySchema,
+        (partialEvent) => {
+          if (onProgress) {
+            onProgress(partialEvent);
           }
-        );
-      } catch (error: any) {
-        logger.error("Security agent LLM call failed", { error: error.message });
-        throw error;
-      }
-
-      if (!llmSecurity) {
-        throw new Error("Security agent failed: No structured data received from LLM");
-      }
-
-      content = {
-        summary: llmSecurity.summary,
-        description: llmSecurity.description,
-        security_architecture: {
-          authentication: {
-            method: llmSecurity.security_architecture?.authentication?.method,
-            providers: llmSecurity.security_architecture?.authentication?.providers,
-            mfa_enabled: llmSecurity.security_architecture?.authentication?.mfa_enabled
-          },
-          authorization: {
-            model: llmSecurity.security_architecture?.authorization?.model,
-            roles: llmSecurity.security_architecture?.authorization?.roles,
-            policies: llmSecurity.security_architecture?.authorization?.policies
-          },
-          session_management: llmSecurity.security_architecture?.session_management,
-          audit_logging: llmSecurity.security_architecture?.audit_logging || { enabled: false }
         },
-        threat_model: llmSecurity.threat_model,
-        encryption: llmSecurity.encryption,
-        security_controls: llmSecurity.security_controls,
-        compliance: llmSecurity.compliance,
-        vulnerability_management: llmSecurity.vulnerability_management,
-        security_monitoring: llmSecurity.security_monitoring,
-      };
+        {
+          reasoning: context.options?.reasoning ?? false,
+          temperature: getAgentTemperature("security_architecture"),
+          cacheId: context.cacheId,
+          role: "Security",
+          model: context.options?.model
+        }
+      );
+    } catch (error: any) {
+      logger.error("Security agent LLM call failed", { error: error.message });
+      throw error;
+    }
+
+    if (!llmSecurity) {
+      throw new Error("Security agent failed: No structured data received from LLM");
+    }
+
+    content = {
+      summary: llmSecurity.summary,
+      description: llmSecurity.description,
+      security_architecture: {
+        authentication: {
+          method: llmSecurity.security_architecture?.authentication?.method,
+          providers: llmSecurity.security_architecture?.authentication?.providers,
+          mfa_enabled: llmSecurity.security_architecture?.authentication?.mfa_enabled
+        },
+        authorization: {
+          model: llmSecurity.security_architecture?.authorization?.model,
+          roles: llmSecurity.security_architecture?.authorization?.roles,
+          policies: llmSecurity.security_architecture?.authorization?.policies
+        },
+        session_management: llmSecurity.security_architecture?.session_management,
+        audit_logging: llmSecurity.security_architecture?.audit_logging
+      },
+      threat_model: llmSecurity.threat_model,
+      encryption: llmSecurity.encryption,
+      security_controls: llmSecurity.security_controls,
+      compliance: llmSecurity.compliance,
+      vulnerability_management: llmSecurity.vulnerability_management,
+      security_monitoring: llmSecurity.security_monitoring,
+    };
 
     // Validation check
     if (!content.security_architecture || !content.threat_model || content.threat_model.length === 0) {
