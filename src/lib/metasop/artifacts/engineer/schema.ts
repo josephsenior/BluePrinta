@@ -9,42 +9,42 @@ export const engineerSchema = {
         artifact_path: {
             type: "string",
             maxLength: 30,
-            description: "Base directory (e.g., 'src/app').",
+            description: "Base directory for the project source code (e.g., 'src/lib/app').",
         },
         run_results: {
             type: "object",
             required: ["setup_commands", "test_commands", "dev_commands", "build_commands"],
-            description: "Essential CLI commands.",
+            description: "Essential CLI commands for different stages of the project lifecycle.",
             properties: {
-                setup_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Setup (e.g., 'npm install')." },
-                test_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Tests (e.g., 'npm test')." },
-                dev_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Dev (e.g., 'npm run dev')." },
-                build_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Build (e.g., 'npm run build')." },
-                notes: { type: "string", maxLength: 200, description: "Operational notes or context." },
+                setup_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Commands to initialize the environment (e.g., 'npm install')." },
+                test_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Commands to execute tests (e.g., 'npm test')." },
+                dev_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Commands to start a development server (e.g., 'npm run dev')." },
+                build_commands: { type: "array", items: { type: "string", maxLength: 50 }, description: "Commands to compile or bundle the project (e.g., 'npm run build')." },
+                notes: { type: "string", maxLength: 200, description: "Additional context or prerequisites for running the commands." },
             }
         },
         file_structure: {
             type: "object",
             required: ["name", "type", "children"],
-            description: "Full project scaffold and boilerplate. Focus on metadata. DO NOT include file content.",
+            description: "Recursive definition of the project's file and directory hierarchy. Focus on structure, not content.",
             properties: {
-                name: { type: "string", maxLength: 30, description: "Root name." },
-                type: { type: "string", enum: ["file", "directory"] },
+                name: { type: "string", maxLength: 30, description: "Root directory or file name." },
+                type: { type: "string", enum: ["file", "directory"], description: "Indicator if the root is a folder or a file." },
                 children: {
                     type: "array",
                     items: {
                         type: "object",
                         required: ["name", "type"],
                         properties: {
-                            name: { type: "string", maxLength: 30 },
-                            type: { type: "string", enum: ["file", "directory"] },
+                            name: { type: "string", maxLength: 30, description: "File or subdirectory name." },
+                            type: { type: "string", enum: ["file", "directory"], description: "Item type." },
                             children: {
                                 type: "array",
                                 items: {
                                     type: "object",
                                     required: ["name", "type"],
                                     properties: {
-                                        name: { type: "string", maxLength: 30 },
+                                        name: { type: "string", maxLength: 30, description: "Nested item name." },
                                         type: { type: "string", enum: ["file", "directory"] },
                                         children: {
                                             type: "array",
@@ -55,13 +55,16 @@ export const engineerSchema = {
                                                     name: { type: "string", maxLength: 30 },
                                                     type: { type: "string", enum: ["file", "directory"] },
                                                 }
-                                            }
+                                            },
+                                            description: "Third-level nested contents."
                                         }
                                     }
-                                }
+                                },
+                                description: "Second-level nested contents."
                             }
                         }
-                    }
+                    },
+                    description: "First-level contents of the root."
                 }
             }
         },
@@ -71,17 +74,17 @@ export const engineerSchema = {
                 type: "object",
                 required: ["name", "description", "tasks"],
                 properties: {
-                    name: { type: "string", maxLength: 50 },
-                    description: { type: "string", maxLength: 200 },
-                    tasks: { type: "array", items: { type: "string", maxLength: 100 } },
+                    name: { type: "string", maxLength: 50, description: "Title of the implementation phase (e.g., 'Auth Implementation')." },
+                    description: { type: "string", maxLength: 200, description: "Technical summary of what this phase achieves." },
+                    tasks: { type: "array", items: { type: "string", maxLength: 100 }, description: "Specific steps or features to be implemented in this phase." },
                 }
             },
-            description: "Structured implementation phases for the roadmap view.",
+            description: "Breakdown of the development roadmap into logical milestones.",
         },
         dependencies: {
             type: "array",
-            items: { type: "string", maxLength: 40, description: "Dep (e.g., 'next@14.1.0')." },
-            description: "Essential build dependencies.",
+            items: { type: "string", maxLength: 40, description: "Package name and version (e.g., 'zod@3.22.4')." },
+            description: "Core libraries and external packages required to build and run the project.",
         },
         technical_decisions: {
             type: "array",
@@ -89,12 +92,12 @@ export const engineerSchema = {
                 type: "object",
                 required: ["decision", "rationale", "alternatives"],
                 properties: {
-                    decision: { type: "string", maxLength: 100, description: "Clear decision statement (e.g., 'Use React Query for server state management')." },
-                    rationale: { type: "string", maxLength: 300, description: "Detailed reasoning with specific justification and benefits." },
-                    alternatives: { type: "string", maxLength: 200, description: "Alternatives considered with brief rejection reason." },
+                    decision: { type: "string", maxLength: 100, description: "Specific engineering choice made (e.g., 'Use CSS Modules')." },
+                    rationale: { type: "string", maxLength: 300, description: "Technical justification for the chosen approach." },
+                    alternatives: { type: "string", maxLength: 200, description: "Discarded options and why they were rejected." },
                 },
             },
-            description: "Critical implementation decisions. Cover key choices proportional to project complexity.",
+            description: "Documentation of key engineering trade-offs and decisions.",
         },
         environment_variables: {
             type: "array",
@@ -103,25 +106,26 @@ export const engineerSchema = {
                 required: ["name", "description", "example", "required"],
                 properties: {
                     name: { type: "string", maxLength: 50, description: "Variable name in SCREAMING_SNAKE_CASE." },
-                    description: { type: "string", maxLength: 150, description: "What this variable configures and when it's needed." },
-                    example: { type: "string", maxLength: 150, description: "Example value (use placeholder for secrets)." },
-                    required: { type: "boolean", description: "Whether this variable is required for app to run." },
+                    description: { type: "string", maxLength: 150, description: "What this variable configures." },
+                    example: { type: "string", maxLength: 150, description: "A safe example value." },
+                    required: { type: "boolean", description: "Whether the app requires this variable to function." },
                 },
             },
-            description: "Required environment variables. Include only what's needed for the specific project.",
+            description: "Required runtime configuration variables.",
         },
         technical_patterns: {
             type: "array",
-            items: { type: "string", maxLength: 30 },
-            description: "Industry patterns used (e.g., SOLID, Repository, Factory).",
+            items: { type: "string", maxLength: 30, description: "Design pattern name (e.g., 'Singleton', 'Strategy')." },
+            description: "Software engineering patterns utilized in the implementation.",
         },
         state_management: {
             type: "object",
             required: ["tool", "strategy"],
             properties: {
-                tool: { type: "string", maxLength: 30, description: "The state management tool or pattern." },
-                strategy: { type: "string", maxLength: 150, description: "Implementation strategy." },
+                tool: { type: "string", maxLength: 30, description: "Library or pattern for managing state (e.g., 'Zustand')." },
+                strategy: { type: "string", maxLength: 150, description: "Logical approach for state organization and updates." },
             },
+            description: "Plan for handling application-wide and component-local state.",
         },
     },
 };

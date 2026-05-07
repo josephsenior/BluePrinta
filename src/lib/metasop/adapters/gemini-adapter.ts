@@ -267,25 +267,10 @@ ${prompt}`
                 if (content?.parts) {
                   for (const part of content.parts) {
                     if (part.text) {
-                      // Gemini sends cumulative text, extract delta
+                      // Gemini sends DELTA text, not cumulative
                       const newText = part.text;
-                      if (newText.length >= fullText.length) {
-                        // Normal case: new text is longer (cumulative)
-                        const delta = newText.slice(fullText.length);
-                        fullText = newText;
-                        if (delta) {
-                          onChunk(delta);
-                        }
-                      } else {
-                        // Edge case: text was reset (shouldn't happen, but handle gracefully)
-                        logger.warn("Gemini stream text reset detected", {
-                          oldLength: fullText.length,
-                          newLength: newText.length
-                        });
-                        // Send the new text as-is
-                        fullText = newText;
-                        onChunk(newText);
-                      }
+                      fullText += newText;
+                      onChunk(newText);
                     }
                   }
                 }
@@ -783,33 +768,34 @@ ${prompt}`
     onProgress: (event: Partial<MetaSOPEvent>) => void,
     options?: LLMOptions
   ): Promise<T> {
-    const startTime = Date.now();
-    const model = options?.model || this.defaultModel;
+    let accumulatedText = "";
+    try {
+      const model = options?.model || this.defaultModel;
 
-    // Send initial progress
-    if (onProgress) {
-      try {
-        onProgress({
-          type: "agent_progress",
-          status: "in_progress",
-          message: `Agent ${options?.role || "LLM"} is thinking...`,
-          timestamp: new Date().toISOString()
-        });
-      } catch (e: any) {
-        logger.warn(`[Gemini] Failed to send initial progress: ${e.message}`);
+      // Send initial progress
+      if (onProgress) {
+        try {
+          onProgress({
+            type: "agent_progress",
+            status: "in_progress",
+            message: `Agent ${options?.role || "LLM"} is thinking...`,
+            timestamp: new Date().toISOString()
+          });
+        } catch (e: any) {
+          logger.warn(`[Gemini] Failed to send initial progress: ${e.message}`);
+        }
       }
-    }
 
-    // Convert schema for Gemini
-    const dynamicPaths = new Set<string>();
-    // Logic similar to generateStructured prompt construction
-    const finalPrompt = options?.cacheId
-      ? `Based on the cached context, please perform your task as ${options.role || 'an agent'}.
+      // Convert schema for Gemini
+      const dynamicPaths = new Set<string>();
+      // Logic similar to generateStructured prompt construction
+      const finalPrompt = options?.cacheId
+        ? `Based on the cached context, please perform your task as ${options.role || 'an agent'}.
     
 ${prompt}`
-      : prompt;
+        : prompt;
 
-    const structuredPrompt = `${finalPrompt}
+      const structuredPrompt = `${finalPrompt}
 
         === JSON SCHEMA ===
         ${JSON.stringify(schema, null, 2)}
@@ -819,60 +805,106 @@ ${prompt}`
         2. Ensure ALL fields are present according to the schema.
         3. RESPOND WITH ONLY THE JSON OBJECT - NO PREAMBLE OR EXPLANATION.`;
 
-    let finalSchema = schema;
-    const isGemini3 = model.includes('gemini-3');
+      let finalSchema = schema;
+      const isGemini3 = model.includes('gemini-3');
 
-    if (options?.reasoning && !isGemini3 && schema.type === 'object' && schema.properties) {
-      try {
-        finalSchema = JSON.parse(JSON.stringify(schema));
-        finalSchema.properties._reasoning = {
-          type: 'string',
-          description: 'INTERNAL: First, think step-by-step about the solution before generating the rest of the JSON. Write your reasoning here.'
-        };
-        if (!finalSchema.required) finalSchema.required = [];
-        if (!finalSchema.required.includes('_reasoning')) {
-          finalSchema.required.unshift('_reasoning');
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-
-    const geminiSchema = convertToGeminiSchema(finalSchema, dynamicPaths);
-
-    // Prepare options with schema
-    const streamOptions: LLMOptions = {
-      ...options,
-      responseSchema: geminiSchema,
-      systemInstruction: !options?.cacheId ? (
-        "You are a specialized JSON generator. You MUST ONLY output valid JSON. No conversational text, no preamble, no markdown, no explanations. Just the raw JSON object." +
-        (options?.role === "UI Designer" ? " Every string value in the JSON must contain only the intended value (e.g. 0.25rem or 400). Do not append any explanations or extra words to any field." : "") +
-        (options?.systemInstruction ? `\n\n${options.systemInstruction}` : "")
-      ) : undefined
-    };
-
-    let accumulatedText = "";
-
-    try {
-      await this.generateStream(
-        structuredPrompt,
-        (chunk) => {
-          accumulatedText += chunk;
-
-          // Emit heartbeat activity 
-          // (We don't parse partial JSON here because it's too expensive/brittle, 
-          // just let the user know bytes are flowing)
-          if (onProgress && accumulatedText.length % 50 === 0) { // Throttle
-            onProgress({
-              type: "agent_progress",
-              status: "in_progress",
-              message: `Agent ${options?.role || "Agent"} generating... (${accumulatedText.length} chars)`,
-              timestamp: new Date().toISOString()
-            });
+      if (options?.reasoning && !isGemini3 && schema.type === 'object' && schema.properties) {
+        try {
+          finalSchema = JSON.parse(JSON.stringify(schema));
+          finalSchema.properties._reasoning = {
+            type: 'string',
+            description: 'INTERNAL: First, think step-by-step about the solution before generating the rest of the JSON. Write your reasoning here.'
+          };
+          if (!finalSchema.required) finalSchema.required = [];
+          if (!finalSchema.required.includes('_reasoning')) {
+            finalSchema.required.unshift('_reasoning');
           }
-        },
-        streamOptions
-      );
+        } catch (_err) {
+          // ignore
+        }
+      }
+
+      const geminiSchema = convertToGeminiSchema(finalSchema, dynamicPaths);
+
+      // Prepare options with schema
+      const streamOptions: LLMOptions = {
+        ...options,
+        responseSchema: geminiSchema,
+        systemInstruction: !options?.cacheId ? (
+          "You are a specialized JSON generator. You MUST ONLY output valid JSON. No conversational text, no preamble, no markdown, no explanations. Just the raw JSON object." +
+          (options?.role === "UI Designer" ? " Every string value in the JSON must contain only the intended value (e.g. 0.25rem or 400). Do not append any explanations or extra words to any field." : "") +
+          (options?.systemInstruction ? `\n\n${options.systemInstruction}` : "")
+        ) : undefined
+      };
+
+
+
+      // Repetition detection state
+      const WINDOW_SIZE = 1000;
+
+      try {
+        await this.generateStream(
+          structuredPrompt,
+          (chunk) => {
+            accumulatedText += chunk;
+
+            // RUNAWAY PROTECTION
+            // 1. Extreme length check for a single generation
+            if (accumulatedText.length > 100000) { // 100KB+ is usually a sign of a loop for these artifacts
+              logger.warn("[Gemini] Runaway stream detected: Extreme length", { length: accumulatedText.length, role: options?.role });
+              throw new Error("STREAM_ABORTED_RUNAWAY_LENGTH");
+            }
+
+            // 2. Repetition detection (Word Salad / Key Dumping)
+            if (accumulatedText.length > 5000) {
+              const recent = accumulatedText.slice(-WINDOW_SIZE);
+
+              // Simple heuristic: if the same long word or pattern repeats excessively
+              // Or if we see the same field names over and over
+              const words = recent.split(/[\s",:{}[\]]+/);
+              const wordCounts: Record<string, number> = {};
+              let maxCount = 0;
+
+              for (const word of words) {
+                if (word.length < 4) continue;
+                wordCounts[word] = (wordCounts[word] || 0) + 1;
+                maxCount = Math.max(maxCount, wordCounts[word]);
+              }
+
+              if (maxCount > 8) { // Tightened from 15 to 8 for better runaway protection
+                logger.warn("[Gemini] Runaway stream detected: High repetition", { maxCount, role: options?.role });
+                throw new Error("STREAM_ABORTED_RUNAWAY_REPETITION");
+              }
+
+              // 3. Sequential repetition detection (e.g. "abc abc abc...")
+              const runawayMatch = recent.match(/(.{10,100}?)\1{5,}$/);
+              if (runawayMatch) {
+                logger.warn("[Gemini] Runaway stream detected: Pattern loop", { role: options?.role });
+                throw new Error("STREAM_ABORTED_RUNAWAY_PATTERN");
+              }
+            }
+
+            // Emit heartbeat activity 
+            if (onProgress && accumulatedText.length % 50 === 0) {
+              onProgress({
+                type: "agent_progress",
+                status: "in_progress",
+                partial_content: accumulatedText,
+                message: `Agent ${options?.role || "Agent"} generating... (${accumulatedText.length} chars)`,
+                timestamp: new Date().toISOString()
+              });
+            }
+          },
+          streamOptions
+        );
+      } catch (streamErr: any) {
+        if (streamErr.message.startsWith("STREAM_ABORTED")) {
+          logger.info("[Gemini] Stream aborted due to runaway protection. Attempting parsing of partial data.");
+          // Continue to parsing logic
+        } else {
+          throw streamErr;
+        }
+      }
 
       // Parse final result
       let result = this.parseWithRepair(accumulatedText, options);
@@ -898,7 +930,7 @@ ${prompt}`
           const debugFilePath = path.join(debugDir, `${agentRole}_partial_error.json`);
           fs.writeFileSync(debugFilePath, accumulatedText);
           logger.error(`[DEBUG] PARTIAL ERROR RESPONSE DUMPED TO: ${debugFilePath}`);
-        } catch (e) {
+        } catch (_e) {
           // ignore
         }
       }
@@ -914,9 +946,18 @@ ${prompt}`
     try {
       result = JSON.parse(jsonText);
     } catch (parseError: any) {
-      logger.warn("Gemini standard JSON parse failed, attempting reliability repair", { error: parseError.message });
+      logger.warn("Gemini standard JSON parse failed, attempting reliability repair", {
+        error: parseError.message,
+        textSnippet: jsonText.substring(0, 100) + "..."
+      });
 
       let cleaned = jsonText.trim();
+
+      // 0. Pre-process to remove Gemini noise that often breaks JSON structure
+      // Example: ", (Note: ...)" or " (Typo fixed: ...)"
+      cleaned = cleaned.replace(/,\s*\([^)]*\)/g, ",");
+      cleaned = cleaned.replace(/\s*\([^)]*\)$/g, "");
+
       // 1. Extract JSON content boundaries
       const firstBrace = cleaned.indexOf('{');
       const firstBracket = cleaned.indexOf('[');
@@ -946,9 +987,7 @@ ${prompt}`
 
       cleaned = cleaned.trim();
 
-      // 2. Fix single-quoted property names/values
       // 2. Fix single-quoted property names/values (smartly)
-      // Only replace quotes that are effectively boundaries (ignoring contractions like "it's")
       cleaned = cleaned.replace(/([\{\[\s:,])'|'([\}\]\s:,])/g, (match, p1, p2) => {
         if (p1) return p1 + '"';
         if (p2) return '"' + p2;
@@ -957,24 +996,36 @@ ${prompt}`
 
       // 3. Trailing commas
       cleaned = cleaned.replace(/,\s*$/g, "");
+      cleaned = cleaned.replace(/,\s*([}\]])/g, "$1");
 
-      // 4. Unterminated strings
+      // 3.5 Detect and prune runaway "word salad" loops before balancing
+      // If we see a massive repeat of the same tokens at the end, chop them off
+      const runawayMatch = cleaned.match(/(.{10,100}?)\1{10,}$/);
+      if (runawayMatch) {
+        logger.info("[Gemini] Detected word salad loop in JSON, pruning...");
+        cleaned = cleaned.slice(0, -runawayMatch[0].length);
+      }
+
+      // 4. Robust quote balancing for potentially massive strings
       if (!cleaned.endsWith('}') && !cleaned.endsWith(']')) {
-        const lastQuote = cleaned.lastIndexOf('"');
-        const lastBrace = cleaned.lastIndexOf('{');
-        const lastBracket = cleaned.lastIndexOf('[');
-        const lastComma = cleaned.lastIndexOf(',');
-        const lastColon = cleaned.lastIndexOf(':');
-
-        if (lastQuote !== -1 && lastQuote > Math.max(lastBrace, lastBracket, lastComma, lastColon)) {
-          const quoteCount = (cleaned.match(/"/g) || []).length;
-          if (quoteCount % 2 !== 0) {
-            cleaned += '"';
+        let inString = false;
+        let escaped = false;
+        for (let i = 0; i < cleaned.length; i++) {
+          if (cleaned[i] === '\\') {
+            escaped = !escaped;
+          } else if (cleaned[i] === '"' && !escaped) {
+            inString = !inString;
+            escaped = false;
+          } else {
+            escaped = false;
           }
+        }
+        if (inString) {
+          cleaned += '"';
         }
       }
 
-      // 5. Remove trailing commas again
+      // 5. Remove trailing commas again after possible quote addition
       cleaned = cleaned.replace(/,\s*([}\]])/g, "$1");
 
       // 6. Balance braces
@@ -988,8 +1039,12 @@ ${prompt}`
 
       try {
         result = JSON.parse(cleaned);
+        logger.info("[Gemini] Successfully repaired JSON response");
       } catch (repairError: any) {
-        logger.error("Reliability repair failed", { error: repairError.message });
+        logger.error("Reliability repair failed", {
+          error: repairError.message,
+          repairedSnippet: cleaned.length > 500 ? cleaned.slice(-500) : cleaned
+        });
 
         // Dump malformed
         if (options?.role) {
@@ -997,8 +1052,9 @@ ${prompt}`
             const agentRole = options.role.toLowerCase().replace(/\s+/g, '_');
             const debugDir = getSessionDebugDir();
             if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
-            const debugFilePath = path.join(debugDir, `${agentRole}_malformed_response.json`);
-            fs.writeFileSync(debugFilePath, jsonText);
+            const debugFilePath = path.join(debugDir, `${agentRole}_repair_failed.json`);
+            fs.writeFileSync(debugFilePath, cleaned);
+            logger.error(`[DEBUG] REPAIR FAILED DUMPED TO: ${debugFilePath}`);
           } catch { }
         }
         throw new Error(`Failed to parse Gemini response: ${parseError.message}`);
@@ -1006,5 +1062,6 @@ ${prompt}`
     }
     return result;
   }
+
 
 }

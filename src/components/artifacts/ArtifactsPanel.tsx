@@ -129,9 +129,35 @@ export function ArtifactsPanel({
                                 >
                                     {(() => {
                                         const artifact = artifacts[activeTab as keyof typeof artifacts]
+                                        const step = (steps || []).find(s => s.step_id === activeTab)
+
                                         if (activeTab === "summary") return <ProjectSummary artifacts={artifacts} onTabChange={setActiveTab} modifiedArtifacts={modifiedArtifacts} />
                                         if (activeTab === "estimates") return <ProjectEstimates artifacts={artifacts} />
-                                        if (!artifact) return <div className="text-xs text-muted-foreground p-4">No artifact data available</div>
+
+                                        if (!artifact) {
+                                            if (step?.partial_response) {
+                                                return (
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                                            <div className="animate-pulse w-2 h-2 bg-amber-500 rounded-full" />
+                                                            <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                                                {step.status === "failed"
+                                                                    ? "Note: Step failed or timed out. Showing partial results below."
+                                                                    : "Note: Agent is still generating. Showing real-time partial output."}
+                                                            </p>
+                                                        </div>
+                                                        <div className="bg-muted/30 rounded-xl p-4 border border-border overflow-x-auto">
+                                                            <pre className="text-[10px] font-mono text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                                                {typeof step.partial_response === 'string'
+                                                                    ? step.partial_response
+                                                                    : JSON.stringify(step.partial_response, null, 2)}
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
+                                            return <div className="text-xs text-muted-foreground p-4">No artifact data available</div>
+                                        }
 
                                         switch (activeTab) {
                                             case "pm_spec":

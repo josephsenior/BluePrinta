@@ -11,9 +11,8 @@ import {
   Box,
   Layout,
   Grid,
-  Accessibility,
-  Smartphone,
-  Monitor
+  Monitor,
+  Smartphone
 } from "lucide-react"
 
 import { UIDesignerBackendArtifact } from "@/lib/metasop/artifacts/ui-designer/types"
@@ -31,7 +30,6 @@ import { TokensSection } from "./sections/TokensSection"
 import { ComponentLibrarySection } from "./sections/ComponentLibrarySection"
 import { AtomicSection } from "./sections/AtomicSection"
 import { BlueprintSection } from "./sections/BlueprintSection"
-import { AccessibilitySection } from "./sections/AccessibilitySection"
 
 export default function UIDesignPanel({
   artifact,
@@ -42,7 +40,6 @@ export default function UIDesignPanel({
   const designTokens = data.design_tokens || {}
   const componentHierarchy = data.component_hierarchy
   const componentSpecs = data.component_specs || []
-  const accessibility = data.accessibility
   const atomicStructure = data.atomic_structure
   const layoutBreakpoints = data.layout_breakpoints
   const uiPatterns = data.ui_patterns || []
@@ -133,7 +130,6 @@ export default function UIDesignPanel({
             <TabTrigger value="library" icon={Layers} label="Components" count={hierarchyNodes.length} />
             <TabTrigger value="atomic" icon={Box} label="Atomic" count={atomicStructure ? (atomicStructure.atoms?.length ?? 0) + (atomicStructure.molecules?.length ?? 0) + (atomicStructure.organisms?.length ?? 0) : 0} />
             <TabTrigger value="arch" icon={Grid} label="Blueprint" count={componentSpecs.length} />
-            <TabTrigger value="accessibility" icon={Accessibility} label="Accessibility" />
           </ArtifactTabBar>
 
           <div className="flex-1 overflow-hidden bg-muted/5">
@@ -170,11 +166,6 @@ export default function UIDesignPanel({
                   />
                 ) : (
                   <EmptyStateCard title="Blueprint" description="No layout blueprint was generated for this run." icon={Grid} />
-                )}
-                {accessibility ? (
-                  <AccessibilitySection accessibility={accessibility} />
-                ) : (
-                  <EmptyStateCard title="Accessibility" description="No accessibility guidance was generated for this run." icon={Accessibility} />
                 )}
               </div>
             </ScrollArea>

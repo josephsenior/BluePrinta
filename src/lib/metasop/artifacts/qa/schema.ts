@@ -75,44 +75,46 @@ export const qaSchema = {
             type: "object",
             required: ["percentage", "threshold", "lines", "statements", "functions", "branches"],
             properties: {
-                percentage: { type: "number", description: "Estimated overall code coverage percentage." },
-                threshold: { type: "number", description: "Target code coverage percentage (e.g. 80)." },
-                lines: { type: "number", description: "Estimated number of lines covered." },
-                statements: { type: "number", description: "Estimated number of statements covered." },
-                functions: { type: "number", description: "Estimated number of functions covered." },
-                branches: { type: "number", description: "Estimated number of branches covered." }
+                percentage: { type: "number", description: "Estimated overall code coverage percentage (0-100)." },
+                threshold: { type: "number", description: "Target code coverage percentage threshold (0-100)." },
+                lines: { type: "number", description: "Estimated percentage of lines covered (0-100)." },
+                statements: { type: "number", description: "Estimated percentage of statements covered (0-100)." },
+                functions: { type: "number", description: "Estimated percentage of functions covered (0-100)." },
+                branches: { type: "number", description: "Estimated percentage of branches covered (0-100)." }
             },
-            description: "Code coverage targets and estimates."
+            description: "Code coverage targets and estimates in percentages."
         },
         performance_metrics: {
             required: ["api_response_time_p95", "page_load_time", "database_query_time", "first_contentful_paint", "time_to_interactive", "largest_contentful_paint"],
             type: "object",
             properties: {
-                api_response_time_p95: { type: "string", maxLength: 15, description: "Target P95 API latency (e.g. '200ms')." },
-                page_load_time: { type: "string", maxLength: 15, description: "Target full page load time (e.g. '2s')." },
-                database_query_time: { type: "string", maxLength: 15, description: "Target slow query threshold (e.g. '100ms')." },
-                first_contentful_paint: { type: "string", maxLength: 15, description: "Target FCP (e.g. '1.5s')." },
-                time_to_interactive: { type: "string", maxLength: 15, description: "Target TTI (e.g. '3.5s')." },
-                largest_contentful_paint: { type: "string", maxLength: 15, description: "Target LCP (e.g. '2.5s')." }
+                api_response_time_p95: { type: "string", maxLength: 15, description: "Target P95 API response time (e.g., '200ms')." },
+                page_load_time: { type: "string", maxLength: 15, description: "Target full page load time (e.g., '2s')." },
+                database_query_time: { type: "string", maxLength: 15, description: "Target slow query threshold (e.g., '100ms')." },
+                first_contentful_paint: { type: "string", maxLength: 15, description: "Target First Contentful Paint (e.g., '1.5s')." },
+                time_to_interactive: { type: "string", maxLength: 15, description: "Target Time to Interactive (e.g., '3.5s')." },
+                largest_contentful_paint: { type: "string", maxLength: 15, description: "Target Largest Contentful Paint (e.g., '2.5s')." }
             },
-            description: "Performance budgets and targets."
+            description: "Performance budgets and targets for the application."
         },
         accessibility_plan: {
             type: "object",
+            required: ["standard", "automated_tools", "manual_checks", "screen_readers"],
             properties: {
                 standard: {
                     type: "string",
                     enum: ["WCAG 2.0 A", "WCAG 2.0 AA", "WCAG 2.0 AAA", "WCAG 2.1 A", "WCAG 2.1 AA", "WCAG 2.1 AAA", "WCAG 2.2 A", "WCAG 2.2 AA", "WCAG 2.2 AAA"],
-                    description: "Target WCAG compliance level."
+                    description: "Target WCAG accessibility compliance level."
                 },
-                automated_tools: { type: "array", items: { type: "string", maxLength: 30 }, description: "Automated testing tools (axe-core, Lighthouse)." },
-                manual_checks: { type: "array", items: { type: "string", maxLength: 100 }, description: "Manual verification checklist items." },
-                screen_readers: { type: "array", items: { type: "string", maxLength: 20 }, description: "Screen readers to test (NVDA, VoiceOver)." }
+                automated_tools: { type: "array", items: { type: "string", maxLength: 30 }, description: "List of automated accessibility testing tools (e.g., axe-core, Lighthouse)." },
+                manual_checks: { type: "array", items: { type: "string", maxLength: 100 }, description: "Checklist for manual accessibility verification." },
+                screen_readers: { type: "array", items: { type: "string", maxLength: 20 }, description: "Screen readers to be used for testing (e.g., NVDA, VoiceOver)." }
             },
             description: "Comprehensive accessibility testing plan for WCAG compliance."
         },
         manual_uat_plan: {
             type: "object",
+            required: ["scenarios", "acceptance_criteria", "stakeholders"],
             properties: {
                 scenarios: { type: "array", items: { type: "string", maxLength: 150 }, description: "UAT scenarios for stakeholder sign-off." },
                 acceptance_criteria: { type: "array", items: { type: "string", maxLength: 150 }, description: "Business acceptance criteria." },

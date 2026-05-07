@@ -18,44 +18,33 @@ const ComponentHierarchySchema = z.object({
     root: z.string(),
     children: z.array(z.object({
         name: z.string(),
-        props: z.array(z.string()).optional(),
-        children: z.array(z.any()).optional(),
-        description: z.string().optional(),
+        children: z.array(z.any()),
+        description: z.string(),
     })),
 });
 
 const DesignTokensSchema = z.object({
-    colors: z.record(z.string(), z.string()).optional(),
-    spacing: z.record(z.string(), z.string()).optional(),
+    colors: z.record(z.string(), z.string()),
+    spacing: z.record(z.string(), z.string()),
     typography: z.object({
-        fontFamily: z.string().optional(),
-        headingFont: z.string().optional(),
-        monoFont: z.string().optional(),
-        fontSize: z.record(z.string(), z.string()).optional(),
-        fontWeight: z.record(z.string(), z.string()).optional(),
-        lineHeight: z.record(z.string(), z.string()).optional(),
-    }).optional(),
-    borderRadius: z.record(z.string(), z.string()).optional(),
-    shadows: z.record(z.string(), z.string()).optional(),
-    animations: z.record(z.string(), z.string()).optional(),
+        fontFamily: z.string(),
+        headingFont: z.string(),
+        monoFont: z.string(),
+        fontSize: z.record(z.string(), z.string()),
+        fontWeight: z.record(z.string(), z.string()),
+        lineHeight: z.record(z.string(), z.string()),
+    }),
+    borderRadius: z.record(z.string(), z.string()),
+    shadows: z.record(z.string(), z.string()),
+    animations: z.record(z.string(), z.string()),
 });
 
 const ComponentSpecSchema = z.object({
     name: z.string(),
     description: z.string(),
     category: z.enum(["atom", "molecule", "organism", "template"]).optional(),
-    props: z.array(z.object({
-        name: z.string(),
-        type: z.string(),
-        required: z.boolean().optional(),
-        description: z.string().optional(),
-        default: z.string().optional(),
-    })).optional().or(z.record(z.any()).transform(obj => {
-        // If we get an object instead of array, convert it
-        return Object.entries(obj).map(([name, type]) => ({ name, type: String(type) }));
-    })),
-    variants: z.array(z.string()).optional(),
-    states: z.array(z.string()).optional(),
+    variants: z.array(z.string()),
+    states: z.array(z.string()),
 });
 
 export const UIDesignerArtifactSchema = z.object({
@@ -69,14 +58,6 @@ export const UIDesignerArtifactSchema = z.object({
         atoms: z.array(z.string()),
         molecules: z.array(z.string()),
         organisms: z.array(z.string()),
-    }),
-    accessibility: z.object({
-        aria_labels: z.boolean().optional(),
-        keyboard_navigation: z.boolean().optional(),
-        screen_reader_support: z.boolean().optional(),
-        color_contrast: z.string().optional(),
-        focus_indicators: z.boolean().optional(),
-        wcag_level: z.enum(["A", "AA", "AAA"]).optional(),
     }),
     website_layout: WebsiteLayoutSchema,
     summary: z.string(),
