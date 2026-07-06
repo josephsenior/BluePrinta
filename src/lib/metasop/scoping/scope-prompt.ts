@@ -5,6 +5,7 @@
  */
 
 import { generateStructuredWithLLM } from "@/lib/metasop/utils/llm-helper";
+import { resolveGeminiModel } from "@/lib/metasop/utils/model-utils";
 import { z } from "zod";
 
 const ScopeQuestionSchema = z.object({
@@ -96,16 +97,28 @@ export type ScopeResult =
   | { proceed: true }
   | { proceed: false; questions: ScopeQuestion[] };
 
-/**
- * Decide whether to proceed or return clarification questions for the given prompt.
- */
-export async function scopePrompt(prompt: string, model?: string): Promise<ScopeResult> {
-  const raw = await generateStructuredWithLLM<{ proceed: boolean; questions?: unknown }>(
-    buildScopePrompt(prompt),
-    scopeResponseJsonSchema,
-    { temperature: 0.2, maxTokens: 1024, model }
-  );
+/** Generic fallback when the scoping LLM call fails (guided mode should still show questions). */
+export function getDefaultScopeQuestions(): ScopeQuestion[] {
+  return [
+    {
+      id: "audience",
+      label: "Primary audience?",
+      options: ["Consumers", "Business Teams", "Enterprise", "Internal Users"],
+    },
+    {
+      id: "platform",
+      label: "Platform?",
+      options: ["Web App", "Mobile App", "Web and Mobile", "API Only"],
+    },
+    {
+      id: "scale",
+      label: "Expected scale?",
+      options: ["MVP", "1k Users", "10k Users", "100k+ Users"],
+    },
+  ];
+}
 
+function parseScopeResponse(raw: { proceed: boolean; questions?: unknown }): ScopeResult {
   const parsed = ScopeResponseSchema.safeParse(raw);
   if (!parsed.success) {
     throw new Error("Invalid scoping response from LLM");
@@ -114,8 +127,42 @@ export async function scopePrompt(prompt: string, model?: string): Promise<Scope
   if (parsed.data.proceed) return { proceed: true };
 
   const cleanedQuestions = cleanQuestions(parsed.data.questions);
+  if (cleanedQuestions.length === 0) return { proceed: true };
+
   return {
     proceed: false,
     questions: cleanedQuestions,
   };
+}
+
+/**
+ * Decide whether to proceed or return clarification questions for the given prompt.
+ */
+export async function scopePrompt(prompt: string, model?: string): Promise<ScopeResult> {
+  const llmOptions = {
+    temperature: 0.2,
+    maxTokens: 2048,
+    model: resolveGeminiModel(model),
+    role: "Scoping",
+    systemInstruction:
+      "Return only valid JSON matching the schema. Keep every string short. Do not use quotes inside option labels.",
+  };
+
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const raw = await generateStructuredWithLLM<{ proceed: boolean; questions?: unknown }>(
+        buildScopePrompt(prompt),
+        scopeResponseJsonSchema,
+        llmOptions
+      );
+      return parseScopeResponse(raw);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  console.warn("[Scoping] LLM failed after retries, using default questions:", lastError?.message);
+  return { proceed: false, questions: getDefaultScopeQuestions() };
 }

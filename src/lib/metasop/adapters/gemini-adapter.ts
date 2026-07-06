@@ -14,6 +14,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { calculateGeminiCost } from "./gemini/cost";
 import { convertToGeminiSchema, processDynamicFields } from "./gemini/schema-utils";
+import { resolveGeminiModel } from "../utils/model-utils";
 
 const STREAM_MAX_ATTEMPTS = 3;
 const STREAM_RETRY_BASE_DELAY_MS = 3000;
@@ -45,6 +46,63 @@ function looksLikeNonJsonResponse(text: string): boolean {
   return !trimmed.includes("{") && !trimmed.includes("[");
 }
 
+type GeminiResponseMeta = {
+  text: string;
+  finishReason?: string;
+  blockReason?: string;
+  candidateCount: number;
+};
+
+function extractGeminiResponseText(data: any): GeminiResponseMeta {
+  const candidate = data?.candidates?.[0];
+  const finishReason = candidate?.finishReason;
+  const blockReason = data?.promptFeedback?.blockReason;
+  const parts = candidate?.content?.parts || [];
+
+  let text = "";
+  for (const part of parts) {
+    if (typeof part?.text === "string") {
+      text += part.text;
+    }
+  }
+
+  // Some Gemini builds return JSON only in thought parts when structured output misfires.
+  if (!text.trim()) {
+    for (const part of parts) {
+      const thought = part?.thought;
+      if (typeof thought === "string") {
+        const trimmed = thought.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          text += thought;
+        }
+      }
+    }
+  }
+
+  return {
+    text,
+    finishReason,
+    blockReason,
+    candidateCount: data?.candidates?.length ?? 0,
+  };
+}
+
+function dumpGeminiDebugArtifact(
+  role: string | undefined,
+  filename: string,
+  payload: unknown
+): void {
+  if (!role) return;
+  try {
+    const agentRole = role.toLowerCase().replace(/\s+/g, "_");
+    const debugDir = getSessionDebugDir();
+    if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
+    fs.writeFileSync(path.join(debugDir, `${agentRole}_${filename}`), JSON.stringify(payload, null, 2));
+  } catch {
+    // ignore dump errors
+  }
+}
+
 function extractJsonFromMarkdown(text: string): string {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fenced?.[1]) return fenced[1].trim();
@@ -70,12 +128,16 @@ export class GeminiLLMProvider implements LLMProvider {
 
   constructor(apiKey: string, model?: string) {
     this.apiKey = (apiKey || process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY || "").trim();
-    this.defaultModel = model ?? "gemini-3.5-flash";
+    this.defaultModel = resolveGeminiModel(model ?? "gemini-3.5-flash") ?? "gemini-3.5-flash";
+  }
+
+  private resolveModel(options?: LLMOptions): string {
+    return resolveGeminiModel(options?.model || this.defaultModel) ?? this.defaultModel;
   }
 
   async generate(prompt: string, options?: LLMOptions): Promise<string> {
     const startTime = Date.now();
-    const model = options?.model || this.defaultModel;
+    const model = this.resolveModel(options);
 
     try {
       // If using cache, the prompt should be concise as most context is already cached
@@ -212,7 +274,7 @@ ${prompt}`
     options?: LLMOptions
   ): Promise<string> {
     const startTime = Date.now();
-    const model = options?.model || this.defaultModel;
+    const model = this.resolveModel(options);
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= STREAM_MAX_ATTEMPTS; attempt++) {
@@ -553,7 +615,7 @@ ${prompt}`
 
   async generateStructured<T>(prompt: string, schema: any, options?: LLMOptions): Promise<T> {
     const startTime = Date.now();
-    const model = options?.model || this.defaultModel;
+    const model = this.resolveModel(options);
 
     // If using cache, the prompt should be concise as most context is already cached
     const finalPrompt = options?.cacheId
@@ -564,7 +626,10 @@ ${prompt}`
 
     // Schema is enforced via responseSchema in generationConfig — do not duplicate it in the prompt.
     // Embedding the full schema in text often causes Gemini to narrate/explain in markdown before JSON.
-    const structuredPrompt = finalPrompt;
+    // When using context cache, systemInstruction is unavailable — reinforce JSON-only output in the prompt.
+    const structuredPrompt = options?.cacheId
+      ? `${finalPrompt}\n\nCRITICAL: Output ONLY a valid JSON object matching the response schema. No markdown fences, no explanations.`
+      : finalPrompt;
 
     // Schema Injection: Force Gemini 3 to output reasoning visible in JSON since native thinking is hidden
     // UPDATE: Gemini 3 now supports native thinking in some contexts, and schema injection can cause truncation.
@@ -708,20 +773,14 @@ ${prompt}`
       }
 
       // Extract JSON content from response
-      const parts = data.candidates?.[0]?.content?.parts || [];
-      let jsonText = "";
-
-      for (const part of parts) {
-        if (part.text) {
-          jsonText += part.text;
-        }
-      }
+      const { text: jsonText, finishReason: responseFinishReason, blockReason, candidateCount } =
+        extractGeminiResponseText(data);
 
       if (!jsonText && data) {
-        // Log additional info if text is missing but data exists
-        logger.warn(`[Gemini] ${options?.role || 'Agent'} returned data but no text part`, {
-          candidateCount: data.candidates?.length,
-          finishReason: data.candidates?.[0]?.finishReason
+        logger.warn(`[Gemini] ${options?.role || "Agent"} returned data but no text part`, {
+          candidateCount,
+          finishReason: responseFinishReason,
+          blockReason,
         });
       }
 
@@ -735,7 +794,7 @@ ${prompt}`
         const savedPercent = total > 0 ? Math.round((cached / (total + cached)) * 100) : 0;
         const cost = calculateGeminiCost(model, usage);
 
-        const finishReason = data.candidates?.[0]?.finishReason;
+        const finishReason = responseFinishReason ?? data.candidates?.[0]?.finishReason;
 
         const logEntry = `
         ----------------------------------------
@@ -792,7 +851,19 @@ ${prompt}`
       }
 
       if (!jsonText) {
-        throw new Error("No JSON response from Gemini API");
+        dumpGeminiDebugArtifact(options?.role, "empty_response.json", {
+          agent: options?.role,
+          model,
+          timestamp: new Date().toISOString(),
+          finishReason: responseFinishReason,
+          blockReason,
+          candidateCount,
+          usage: data.usageMetadata,
+          raw: data,
+        });
+        throw new Error(
+          `No JSON response from Gemini API (finishReason=${responseFinishReason ?? "unknown"}, blockReason=${blockReason ?? "none"})`
+        );
       }
 
       // Parse final aggregated JSON

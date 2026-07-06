@@ -261,27 +261,59 @@ Respond with ONLY the structured JSON object matching the schema. No explanation
 
     let llmUIDesign: any = null;
 
-    try {
-      llmUIDesign = await generateStreamingStructuredWithLLM<any>(
-        uiPrompt,
-        uiSchema,
-        (partialEvent) => {
-          if (onProgress) {
-            onProgress(partialEvent);
+    const primaryModel = context.options?.model;
+    const uiAttempts: Array<{ model?: string; cacheId?: string; label: string }> = [
+      { model: primaryModel, cacheId: context.cacheId, label: "primary" },
+      { model: "gemini-3.5-flash", cacheId: context.cacheId, label: "flash+cache" },
+      { model: "gemini-3.5-flash", cacheId: undefined, label: "flash-no-cache" },
+    ];
+
+    let lastError: Error | undefined;
+
+    for (let i = 0; i < uiAttempts.length; i++) {
+      const attempt = uiAttempts[i];
+      // Skip duplicate model+cache combos (e.g. when user already selected Flash)
+      if (i > 0) {
+        const prev = uiAttempts[i - 1];
+        if (attempt.model === prev.model && attempt.cacheId === prev.cacheId) continue;
+      }
+
+      try {
+        logger.info("UI Designer LLM attempt", {
+          attempt: attempt.label,
+          model: attempt.model ?? primaryModel,
+          hasCache: !!attempt.cacheId,
+        });
+
+        llmUIDesign = await generateStreamingStructuredWithLLM<any>(
+          uiPrompt,
+          uiSchema,
+          (partialEvent) => {
+            if (onProgress) {
+              onProgress(partialEvent);
+            }
+          },
+          {
+            reasoning: context.options?.reasoning ?? false,
+            temperature: getAgentTemperature("ui_design"),
+            maxTokens: getAgentMaxTokens("ui_design"),
+            cacheId: attempt.cacheId,
+            role: "UI Designer",
+            model: attempt.model ?? primaryModel,
           }
-        },
-        {
-          reasoning: context.options?.reasoning ?? false,
-          temperature: getAgentTemperature("ui_design"),
-          maxTokens: getAgentMaxTokens("ui_design"),
-          cacheId: context.cacheId,
-          role: "UI Designer",
-          model: context.options?.model,
+        );
+        break;
+      } catch (error: any) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        logger.warn("UI Designer LLM attempt failed", {
+          attempt: attempt.label,
+          error: lastError.message,
+        });
+        if (i === uiAttempts.length - 1) {
+          logger.error("UI Designer agent LLM call failed", { error: lastError.message });
+          throw lastError;
         }
-      );
-    } catch (error: any) {
-      logger.error("UI Designer agent LLM call failed", { error: error.message });
-      throw error;
+      }
     }
 
     if (!llmUIDesign) {

@@ -17,6 +17,7 @@ import type {
 } from "@/lib/metasop/types"
 
 import { UploadedDocument, DiagramMetadata } from "@/types/diagram"
+import { resolveGeminiModel } from "@/lib/metasop/utils/model-utils"
 
 export interface GenerationStep {
     step_id: string
@@ -166,7 +167,13 @@ export function useDiagramGeneration() {
             if (savedPrompt) setPrompt(savedPrompt)
 
             const savedModel = localStorage.getItem("metasop_selected_model")
-            if (savedModel) setSelectedModel(savedModel)
+            if (savedModel) {
+                const resolved = resolveGeminiModel(savedModel) ?? savedModel
+                setSelectedModel(resolved)
+                if (resolved !== savedModel) {
+                    localStorage.setItem("metasop_selected_model", resolved)
+                }
+            }
 
             const savedReasoning = localStorage.getItem("metasop_reasoning_enabled")
             if (savedReasoning !== null) setIsReasoningEnabled(savedReasoning === "true")
