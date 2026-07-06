@@ -136,7 +136,7 @@ export async function applyBatchUpdate(
     const response = await generateWithLLM(prompt, {
         temperature: 0.1, // Very low for precise execution
         role: "Batch Updater",
-        model: "gemini-3-flash-preview", // Use Flash for efficiency and speed
+        model: "gemini-3.5-flash", // Use Flash for efficiency and speed
     });
 
     try {

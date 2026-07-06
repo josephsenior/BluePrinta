@@ -80,8 +80,8 @@ export const defaultConfig: MetaSOPConfig = {
       },
       security_architecture: {
         stepId: "security_architecture",
-        timeout: 180000,
-        retries: 0,
+        timeout: 300000,
+        retries: 2,
         temperature: 0.2, // Lower for high-precision security analysis
       },
       engineer_impl: {
@@ -107,7 +107,7 @@ export const defaultConfig: MetaSOPConfig = {
   },
   llm: {
     provider: "gemini",
-    model: "gemini-3-pro-preview",
+    model: "gemini-3.1-pro-preview",
     temperature: 0.2,
     maxTokens: 64000,
   },

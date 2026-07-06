@@ -153,7 +153,7 @@ export async function analyzeIntent(context: RefinementContext): Promise<EditPla
     const response = await generateWithLLM(prompt, {
         temperature: 0.3, // Balanced: some creativity for reasoning, but structured output
         role: "Intent Analyzer",
-        model: "gemini-3-pro-preview", // Use Pro for better reasoning
+        model: "gemini-3.1-pro-preview", // Use Pro for better reasoning
     });
 
     // Parse the JSON response

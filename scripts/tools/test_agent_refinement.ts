@@ -12,7 +12,7 @@ import type { ChangelogEntry, Edit, EditPlan } from "../../src/lib/metasop/refin
 
 // Use Gemini 1.5 Pro for better reasoning in the test if available
 process.env.METASOP_LLM_PROVIDER = "gemini";
-process.env.METASOP_LLM_MODEL = "gemini-3-pro-preview";
+process.env.METASOP_LLM_MODEL = "gemini-3.1-pro-preview";
 resetLLMProvider();
 
 async function runRefinementTest() {

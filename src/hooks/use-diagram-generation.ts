@@ -139,7 +139,7 @@ export function useDiagramGeneration() {
     const [isGenerating, setIsGenerating] = useState(false)
     const [isScoping, setIsScoping] = useState(false)
     const [guidedMode, setGuidedMode] = useState(false)
-    const [selectedModel, setSelectedModel] = useState("gemini-3-flash-preview")
+    const [selectedModel, setSelectedModel] = useState("gemini-3.5-flash")
     const [isReasoningEnabled, setIsReasoningEnabled] = useState(false)
 
     const [clarificationQuestions, setClarificationQuestions] = useState<ClarificationQuestion[] | null>(null)
@@ -481,7 +481,7 @@ export function useDiagramGeneration() {
         try {
             const scopeRes = await fetchDiagramApi("/api/diagrams/scope", {
                 method: "POST",
-                body: JSON.stringify({ prompt: trimmedPrompt }),
+                body: JSON.stringify({ prompt: trimmedPrompt, model: selectedModel }),
                 headers: { "Content-Type": "application/json" },
             })
             const scopeJson = await scopeRes.json().catch(() => ({}))

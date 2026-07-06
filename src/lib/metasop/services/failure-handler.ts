@@ -45,6 +45,10 @@ export class FailureHandler {
       errorMessage.includes("fetch") ||
       errorMessage.includes("connection") ||
       errorMessage.includes("econnrefused") ||
+      errorMessage.includes("econnreset") ||
+      errorMessage.includes("econnaborted") ||
+      errorMessage.includes("etimedout") ||
+      errorMessage.includes("socket hang up") ||
       errorMessage.includes("enotfound")
     ) {
       return {

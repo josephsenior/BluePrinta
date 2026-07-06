@@ -99,11 +99,11 @@ export type ScopeResult =
 /**
  * Decide whether to proceed or return clarification questions for the given prompt.
  */
-export async function scopePrompt(prompt: string): Promise<ScopeResult> {
+export async function scopePrompt(prompt: string, model?: string): Promise<ScopeResult> {
   const raw = await generateStructuredWithLLM<{ proceed: boolean; questions?: unknown }>(
     buildScopePrompt(prompt),
     scopeResponseJsonSchema,
-    { temperature: 0.2, maxTokens: 1024 }
+    { temperature: 0.2, maxTokens: 1024, model }
   );
 
   const parsed = ScopeResponseSchema.safeParse(raw);
