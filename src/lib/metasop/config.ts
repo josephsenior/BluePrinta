@@ -93,7 +93,7 @@ export const defaultConfig: MetaSOPConfig = {
       ui_design: {
         stepId: "ui_design",
         timeout: 900000, // 15 minutes
-        retries: 0,
+        retries: 1,
         temperature: 0.2,
         maxTokens: 24576, // Cap output so response completes before MAX_TOKENS; aligns with prompt "keep each section short"
       },
