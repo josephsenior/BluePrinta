@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.json();
     const body = validateScopeRequest(rawBody);
 
-    const result = await scopePrompt(body.prompt);
+    const result = await scopePrompt(body.prompt, body.model);
 
     return createSuccessResponse(result, undefined, cookieOpt);
   } catch (error: any) {

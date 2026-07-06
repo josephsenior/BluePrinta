@@ -15,14 +15,62 @@ import * as path from "path";
 import { calculateGeminiCost } from "./gemini/cost";
 import { convertToGeminiSchema, processDynamicFields } from "./gemini/schema-utils";
 
+const STREAM_MAX_ATTEMPTS = 3;
+const STREAM_RETRY_BASE_DELAY_MS = 3000;
+const STREAM_TIMEOUT_MS = 600_000;
+
+function isTransientNetworkError(error: unknown): boolean {
+  const err = error as { code?: string; message?: string };
+  const msg = (err.message || "").toLowerCase();
+  return (
+    err.code === "ECONNRESET" ||
+    err.code === "ECONNABORTED" ||
+    err.code === "ETIMEDOUT" ||
+    err.code === "EPIPE" ||
+    msg.includes("econnreset") ||
+    msg.includes("socket hang up") ||
+    msg.includes("network error")
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function looksLikeNonJsonResponse(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) return false;
+  if (trimmed.startsWith("**") || trimmed.startsWith("#")) return true;
+  return !trimmed.includes("{") && !trimmed.includes("[");
+}
+
+function extractJsonFromMarkdown(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+
+  const firstBrace = text.indexOf("{");
+  const firstBracket = text.indexOf("[");
+  if (firstBrace === -1 && firstBracket === -1) return text;
+
+  const startIdx =
+    firstBrace !== -1 && firstBracket !== -1
+      ? Math.min(firstBrace, firstBracket)
+      : firstBrace !== -1
+        ? firstBrace
+        : firstBracket;
+
+  return text.slice(startIdx).trim();
+}
+
 export class GeminiLLMProvider implements LLMProvider {
   private apiKey: string;
   private baseUrl: string = "https://generativelanguage.googleapis.com/v1beta";
-  private defaultModel: string = "gemini-3-flash-preview";
+  private defaultModel: string = "gemini-3.5-flash";
 
   constructor(apiKey: string, model?: string) {
     this.apiKey = (apiKey || process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY || "").trim();
-    this.defaultModel = model ?? "gemini-3-flash-preview";
+    this.defaultModel = model ?? "gemini-3.5-flash";
   }
 
   async generate(prompt: string, options?: LLMOptions): Promise<string> {
@@ -165,8 +213,39 @@ ${prompt}`
   ): Promise<string> {
     const startTime = Date.now();
     const model = options?.model || this.defaultModel;
+    let lastError: unknown;
 
-    try {
+    for (let attempt = 1; attempt <= STREAM_MAX_ATTEMPTS; attempt++) {
+      try {
+        return await this.generateStreamOnce(prompt, onChunk, options, model, startTime);
+      } catch (error: unknown) {
+        lastError = error;
+        const canRetry = attempt < STREAM_MAX_ATTEMPTS && isTransientNetworkError(error);
+        if (!canRetry) break;
+
+        logger.warn("Gemini stream transient failure, retrying", {
+          model,
+          attempt,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        await sleep(STREAM_RETRY_BASE_DELAY_MS * attempt);
+      }
+    }
+
+    logger.error("Gemini streaming generation failed", {
+      error: lastError instanceof Error ? lastError.message : String(lastError),
+      model,
+    });
+    throw lastError;
+  }
+
+  private async generateStreamOnce(
+    prompt: string,
+    onChunk: (chunk: string) => void,
+    options: LLMOptions | undefined,
+    model: string,
+    startTime: number
+  ): Promise<string> {
       // If using cache, the prompt should be concise as most context is already cached
       const finalPrompt = options?.cacheId
         ? `Based on the cached context, please perform your task as ${options.role || 'an agent'}.
@@ -215,7 +294,8 @@ ${prompt}`
         headers: {
           "Content-Type": "application/json",
         },
-        responseType: "stream", // Important: use stream response type for SSE
+        responseType: "stream",
+        timeout: STREAM_TIMEOUT_MS,
       });
 
       let fullText = "";
@@ -347,10 +427,6 @@ ${prompt}`
           reject(error);
         });
       });
-    } catch (error: any) {
-      logger.error("Gemini streaming generation failed", { error: error.message, model });
-      throw error;
-    }
   }
 
   /**
@@ -486,16 +562,9 @@ ${prompt}`
           ${prompt}`
       : prompt;
 
-    // For Gemini 3, we rely primarily on responseSchema to minimize prompt noise
-    const structuredPrompt = `${finalPrompt}
-
-        === JSON SCHEMA ===
-        ${JSON.stringify(schema, null, 2)}
-
-        === CRITICAL REQUIREMENTS ===
-        1. You MUST respond with ONLY a valid JSON object matching the provided schema.
-        2. Ensure ALL fields are present according to the schema.
-        3. RESPOND WITH ONLY THE JSON OBJECT - NO PREAMBLE OR EXPLANATION.`;
+    // Schema is enforced via responseSchema in generationConfig — do not duplicate it in the prompt.
+    // Embedding the full schema in text often causes Gemini to narrate/explain in markdown before JSON.
+    const structuredPrompt = finalPrompt;
 
     // Schema Injection: Force Gemini 3 to output reasoning visible in JSON since native thinking is hidden
     // UPDATE: Gemini 3 now supports native thinking in some contexts, and schema injection can cause truncation.
@@ -755,12 +824,9 @@ ${prompt}`
   }
 
   /**
-   * Streaming version of structured generation.
-   * Currently provides compatibility wrapper as true element-streaming requires specific API support.
-   */
-  /**
-   * Streaming version of structured generation.
-   * Uses true streaming to capture partial responses for debugging.
+   * Structured generation for agents. Uses non-streaming generateContent because
+   * streamGenerateContent + responseSchema is unreliable on large schemas (models
+   * may emit markdown prose like "**Defining..." before JSON).
    */
   async generateStreamingStructured<T>(
     prompt: string,
@@ -768,174 +834,20 @@ ${prompt}`
     onProgress: (event: Partial<MetaSOPEvent>) => void,
     options?: LLMOptions
   ): Promise<T> {
-    let accumulatedText = "";
-    try {
-      const model = options?.model || this.defaultModel;
-
-      // Send initial progress
-      if (onProgress) {
-        try {
-          onProgress({
-            type: "agent_progress",
-            status: "in_progress",
-            message: `Agent ${options?.role || "LLM"} is thinking...`,
-            timestamp: new Date().toISOString()
-          });
-        } catch (e: any) {
-          logger.warn(`[Gemini] Failed to send initial progress: ${e.message}`);
-        }
-      }
-
-      // Convert schema for Gemini
-      const dynamicPaths = new Set<string>();
-      // Logic similar to generateStructured prompt construction
-      const finalPrompt = options?.cacheId
-        ? `Based on the cached context, please perform your task as ${options.role || 'an agent'}.
-    
-${prompt}`
-        : prompt;
-
-      const structuredPrompt = `${finalPrompt}
-
-        === JSON SCHEMA ===
-        ${JSON.stringify(schema, null, 2)}
-
-        === CRITICAL REQUIREMENTS ===
-        1. You MUST respond with ONLY a valid JSON object matching the provided schema.
-        2. Ensure ALL fields are present according to the schema.
-        3. RESPOND WITH ONLY THE JSON OBJECT - NO PREAMBLE OR EXPLANATION.`;
-
-      let finalSchema = schema;
-      const isGemini3 = model.includes('gemini-3');
-
-      if (options?.reasoning && !isGemini3 && schema.type === 'object' && schema.properties) {
-        try {
-          finalSchema = JSON.parse(JSON.stringify(schema));
-          finalSchema.properties._reasoning = {
-            type: 'string',
-            description: 'INTERNAL: First, think step-by-step about the solution before generating the rest of the JSON. Write your reasoning here.'
-          };
-          if (!finalSchema.required) finalSchema.required = [];
-          if (!finalSchema.required.includes('_reasoning')) {
-            finalSchema.required.unshift('_reasoning');
-          }
-        } catch (_err) {
-          // ignore
-        }
-      }
-
-      const geminiSchema = convertToGeminiSchema(finalSchema, dynamicPaths);
-
-      // Prepare options with schema
-      const streamOptions: LLMOptions = {
-        ...options,
-        responseSchema: geminiSchema,
-        systemInstruction: !options?.cacheId ? (
-          "You are a specialized JSON generator. You MUST ONLY output valid JSON. No conversational text, no preamble, no markdown, no explanations. Just the raw JSON object." +
-          (options?.role === "UI Designer" ? " Every string value in the JSON must contain only the intended value (e.g. 0.25rem or 400). Do not append any explanations or extra words to any field." : "") +
-          (options?.systemInstruction ? `\n\n${options.systemInstruction}` : "")
-        ) : undefined
-      };
-
-
-
-      // Repetition detection state
-      const WINDOW_SIZE = 1000;
-
+    if (onProgress) {
       try {
-        await this.generateStream(
-          structuredPrompt,
-          (chunk) => {
-            accumulatedText += chunk;
-
-            // RUNAWAY PROTECTION
-            // 1. Extreme length check for a single generation
-            if (accumulatedText.length > 100000) { // 100KB+ is usually a sign of a loop for these artifacts
-              logger.warn("[Gemini] Runaway stream detected: Extreme length", { length: accumulatedText.length, role: options?.role });
-              throw new Error("STREAM_ABORTED_RUNAWAY_LENGTH");
-            }
-
-            // 2. Repetition detection (Word Salad / Key Dumping)
-            if (accumulatedText.length > 5000) {
-              const recent = accumulatedText.slice(-WINDOW_SIZE);
-
-              // Simple heuristic: if the same long word or pattern repeats excessively
-              // Or if we see the same field names over and over
-              const words = recent.split(/[\s",:{}[\]]+/);
-              const wordCounts: Record<string, number> = {};
-              let maxCount = 0;
-
-              for (const word of words) {
-                if (word.length < 4) continue;
-                wordCounts[word] = (wordCounts[word] || 0) + 1;
-                maxCount = Math.max(maxCount, wordCounts[word]);
-              }
-
-              if (maxCount > 8) { // Tightened from 15 to 8 for better runaway protection
-                logger.warn("[Gemini] Runaway stream detected: High repetition", { maxCount, role: options?.role });
-                throw new Error("STREAM_ABORTED_RUNAWAY_REPETITION");
-              }
-
-              // 3. Sequential repetition detection (e.g. "abc abc abc...")
-              const runawayMatch = recent.match(/(.{10,100}?)\1{5,}$/);
-              if (runawayMatch) {
-                logger.warn("[Gemini] Runaway stream detected: Pattern loop", { role: options?.role });
-                throw new Error("STREAM_ABORTED_RUNAWAY_PATTERN");
-              }
-            }
-
-            // Emit heartbeat activity 
-            if (onProgress && accumulatedText.length % 50 === 0) {
-              onProgress({
-                type: "agent_progress",
-                status: "in_progress",
-                partial_content: accumulatedText,
-                message: `Agent ${options?.role || "Agent"} generating... (${accumulatedText.length} chars)`,
-                timestamp: new Date().toISOString()
-              });
-            }
-          },
-          streamOptions
-        );
-      } catch (streamErr: any) {
-        if (streamErr.message.startsWith("STREAM_ABORTED")) {
-          logger.info("[Gemini] Stream aborted due to runaway protection. Attempting parsing of partial data.");
-          // Continue to parsing logic
-        } else {
-          throw streamErr;
-        }
+        onProgress({
+          type: "agent_progress",
+          status: "in_progress",
+          message: `Agent ${options?.role || "LLM"} is generating...`,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (e: any) {
+        logger.warn(`[Gemini] Failed to send initial progress: ${e.message}`);
       }
-
-      // Parse final result
-      let result = this.parseWithRepair(accumulatedText, options);
-
-      // Post-process
-      if (dynamicPaths.size > 0) {
-        processDynamicFields(result, dynamicPaths);
-      }
-      if ((result as any)._reasoning) {
-        delete (result as any)._reasoning;
-      }
-
-      return result as T;
-
-    } catch (error: any) {
-      // DUMP PARTIAL ON ERROR (Timeout, Network, Parsing)
-      if (options?.role && accumulatedText.length > 0) {
-        try {
-          const agentRole = options.role.toLowerCase().replace(/\s+/g, '_');
-          const debugDir = getSessionDebugDir();
-          if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
-
-          const debugFilePath = path.join(debugDir, `${agentRole}_partial_error.json`);
-          fs.writeFileSync(debugFilePath, accumulatedText);
-          logger.error(`[DEBUG] PARTIAL ERROR RESPONSE DUMPED TO: ${debugFilePath}`);
-        } catch (_e) {
-          // ignore
-        }
-      }
-      throw error;
     }
+
+    return this.generateStructured<T>(prompt, schema, options);
   }
 
   /**
@@ -952,6 +864,7 @@ ${prompt}`
       });
 
       let cleaned = jsonText.trim();
+      cleaned = extractJsonFromMarkdown(cleaned);
 
       // 0. Pre-process to remove Gemini noise that often breaks JSON structure
       // Example: ", (Note: ...)" or " (Typo fixed: ...)"

@@ -14,7 +14,7 @@ import path from "path";
 import fs from "fs";
 
 process.env.METASOP_LLM_PROVIDER = "gemini";
-process.env.METASOP_LLM_MODEL = "gemini-3-flash-preview";
+process.env.METASOP_LLM_MODEL = "gemini-3.5-flash";
 resetLLMProvider();
 
 async function testToolBasedRefinement() {

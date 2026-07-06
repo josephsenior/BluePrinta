@@ -64,7 +64,7 @@ export function getRuntimeConfig(): RuntimeConfig {
   const env = getEnv();
   const defaultLlm: RuntimeLLMConfig = {
     provider: env.NODE_ENV === "test" ? "mock" : "gemini",
-    model: "gemini-3-flash-preview",
+    model: "gemini-3.5-flash",
     temperature: 0.2,
     maxTokens: 64000,
   };

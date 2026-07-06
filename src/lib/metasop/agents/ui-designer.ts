@@ -34,20 +34,86 @@ function sanitizeColorValue(colorValue: string | undefined): string {
 /**
  * Sanitizes all color values in design_tokens.colors
  */
-function sanitizeDesignTokensColors(colors: any): any {
-  if (!colors || typeof colors !== "object") {
-    return colors;
+function sanitizeDesignTokensColors(colors: any): Record<string, string> {
+  if (!colors || typeof colors !== "object" || Array.isArray(colors)) {
+    return {};
   }
 
-  const sanitized: any = {};
+  const sanitized: Record<string, string> = {};
   for (const [key, value] of Object.entries(colors)) {
     if (typeof value === "string") {
       sanitized[key] = sanitizeColorValue(value);
-    } else {
-      sanitized[key] = value;
     }
   }
   return sanitized;
+}
+
+const DEFAULT_COLOR_PALETTE: Record<string, string> = {
+  primary: "#4F46E5",
+  primary_foreground: "#FFFFFF",
+  secondary: "#6366F1",
+  secondary_foreground: "#FFFFFF",
+  background: "#0B1220",
+  foreground: "#E5E7EB",
+  muted: "#1F2937",
+  muted_foreground: "#9CA3AF",
+  card: "#111827",
+  card_foreground: "#F9FAFB",
+  popover: "#111827",
+  popover_foreground: "#F9FAFB",
+  border: "#374151",
+  input: "#374151",
+  ring: "#4F46E5",
+  accent: "#1F2937",
+  accent_foreground: "#F9FAFB",
+  destructive: "#EF4444",
+  destructive_foreground: "#FFFFFF",
+};
+
+function buildColorPalette(primary?: string): Record<string, string> {
+  const palette = { ...DEFAULT_COLOR_PALETTE };
+  if (primary && /^#[0-9A-Fa-f]{6}$/.test(primary)) {
+    palette.primary = primary;
+    palette.ring = primary;
+  }
+  return palette;
+}
+
+/**
+ * Gemini sometimes returns design_tokens.colors as a string (JSON blob or single hex).
+ * Coerce to the object shape required by the schema before validation.
+ */
+function coerceDesignTokensColors(colors: unknown): Record<string, string> | undefined {
+  if (colors == null) return undefined;
+
+  if (typeof colors === "string") {
+    const trimmed = colors.trim();
+    if (trimmed.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          const sanitized = sanitizeDesignTokensColors(parsed);
+          return Object.keys(sanitized).length > 0 ? sanitized : buildColorPalette();
+        }
+      } catch {
+        // fall through
+      }
+    }
+
+    const hex = sanitizeColorValue(trimmed);
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      return buildColorPalette(hex);
+    }
+
+    return buildColorPalette();
+  }
+
+  if (typeof colors === "object" && !Array.isArray(colors)) {
+    const sanitized = sanitizeDesignTokensColors(colors);
+    return Object.keys(sanitized).length > 0 ? sanitized : buildColorPalette();
+  }
+
+  return buildColorPalette();
 }
 
 
@@ -222,12 +288,14 @@ Respond with ONLY the structured JSON object matching the schema. No explanation
       throw new Error("UI Designer agent failed: No structured data received from LLM");
     }
 
-    // Sanitize color palette values if they exist
-    if (llmUIDesign.design_tokens?.colors) {
-      llmUIDesign.design_tokens.colors = sanitizeDesignTokensColors(llmUIDesign.design_tokens.colors);
+    // Coerce + sanitize design tokens (model may return colors as a string)
+    if (llmUIDesign.design_tokens) {
+      const coercedColors = coerceDesignTokensColors(llmUIDesign.design_tokens.colors);
+      if (coercedColors) {
+        llmUIDesign.design_tokens.colors = coercedColors;
+      }
+      sanitizeDesignTokensSpacingAndTypography(llmUIDesign.design_tokens);
     }
-    // Sanitize spacing/typography so values are only raw CSS (no INVALID/FIX/REQUIRED text)
-    sanitizeDesignTokensSpacingAndTypography(llmUIDesign.design_tokens);
 
     // Fallback logic removed as per user request for no defaults.
     // The schema validation will catch missing required fields.

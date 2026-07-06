@@ -16,6 +16,7 @@ export const CreateDiagramSchema = z.object({
 
 export const ScopeRequestSchema = z.object({
     prompt: z.string().min(1, "Prompt is required"),
+    model: z.string().optional(),
 });
 
 export function validateScopeRequest(data: unknown) {

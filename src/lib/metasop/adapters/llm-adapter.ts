@@ -263,7 +263,7 @@ export function createLLMProvider(provider?: "gemini" | "openai" | "mock" | "ver
       const { getConfig } = require("../config");
       const config = getConfig();
       const apiKey = config.llm.apiKey || process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
-      const model = config.llm.model || "gemini-3-pro-preview";
+      const model = config.llm.model || "gemini-3.1-pro-preview";
       const { GeminiLLMProvider } = require("./gemini-adapter");
       return new GeminiLLMProvider(apiKey, model);
     }
