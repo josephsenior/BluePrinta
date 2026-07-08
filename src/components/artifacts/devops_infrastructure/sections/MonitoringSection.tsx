@@ -52,11 +52,11 @@ export function MonitoringSection({ monitoring, scaling }: MonitoringSectionProp
 
                 <div className="space-y-4 h-full">
                     <Card className="h-full border-border/60 shadow-sm overflow-hidden">
-                        <div className="p-3 border-b border-border/40 bg-zinc-950 flex items-center gap-2">
+                        <div className="p-3 border-b border-border/40 bg-zinc-950 dark:bg-zinc-950 flex items-center gap-2">
                             <Terminal className="h-4 w-4 text-emerald-500" />
                             <h3 className="text-sm font-semibold text-zinc-100 font-mono">Observability Stack</h3>
                         </div>
-                        <div className="p-4 bg-zinc-950 min-h-[300px] font-mono text-xs space-y-6">
+                        <div className="p-4 bg-zinc-950 dark:bg-zinc-950 min-h-[300px] font-mono text-xs space-y-6">
                             {monitoring?.metrics && monitoring.metrics.length > 0 && (
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
@@ -121,22 +121,22 @@ export function MonitoringSection({ monitoring, scaling }: MonitoringSectionProp
                         </div>
 
                         {scaling?.auto_scaling && (
-                            <div className="lg:col-span-5 border-t border-zinc-800 p-4 bg-zinc-900/20">
+                            <div className="lg:col-span-5 border-t border-zinc-800 p-4 bg-muted/20 dark:bg-zinc-900/20">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Zap className="h-4 w-4 text-amber-500" />
-                                    <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Auto-Scaling Configuration</h4>
+                                    <h4 className="text-xs font-bold text-foreground dark:text-zinc-300 uppercase tracking-wider">Auto-Scaling Configuration</h4>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="bg-zinc-950 p-3 rounded border border-zinc-800 space-y-2">
-                                        <div className="text-[10px] text-zinc-500 uppercase font-bold">Replicas</div>
+                                    <div className="bg-card dark:bg-zinc-950 p-3 rounded border border-border dark:border-zinc-800 space-y-2">
+                                        <div className="text-[10px] text-muted-foreground dark:text-zinc-500 uppercase font-bold">Replicas</div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs text-zinc-400">Min/Max</span>
-                                            <span className="text-sm font-mono text-zinc-100">{scaling.auto_scaling.min_replicas} - {scaling.auto_scaling.max_replicas}</span>
+                                            <span className="text-xs text-muted-foreground dark:text-zinc-400">Min/Max</span>
+                                            <span className="text-sm font-mono text-foreground dark:text-zinc-100">{scaling.auto_scaling.min_replicas} - {scaling.auto_scaling.max_replicas}</span>
                                         </div>
                                     </div>
                                     {scaling.auto_scaling.metrics && (
-                                        <div className="bg-zinc-950 p-3 rounded border border-zinc-800 space-y-2">
-                                            <div className="text-[10px] text-zinc-500 uppercase font-bold">Metrics</div>
+                                        <div className="bg-card dark:bg-zinc-950 p-3 rounded border border-border dark:border-zinc-800 space-y-2">
+                                            <div className="text-[10px] text-muted-foreground dark:text-zinc-500 uppercase font-bold">Metrics</div>
                                             <div className="flex flex-wrap gap-1">
                                                 {Object.entries(scaling.auto_scaling.metrics).map(([k, v]: [string, any]) => (
                                                     <Badge key={k} variant="outline" className="text-[9px] border-zinc-700 text-zinc-400 font-mono">
@@ -147,11 +147,11 @@ export function MonitoringSection({ monitoring, scaling }: MonitoringSectionProp
                                         </div>
                                     )}
                                     {scaling.auto_scaling.triggers && scaling.auto_scaling.triggers.length > 0 && (
-                                        <div className="bg-zinc-950 p-3 rounded border border-zinc-800 space-y-2 md:col-span-1">
-                                            <div className="text-[10px] text-zinc-500 uppercase font-bold">Triggers</div>
+                                        <div className="bg-card dark:bg-zinc-950 p-3 rounded border border-border dark:border-zinc-800 space-y-2 md:col-span-1">
+                                            <div className="text-[10px] text-muted-foreground dark:text-zinc-500 uppercase font-bold">Triggers</div>
                                             <div className="space-y-1.5">
                                                 {scaling.auto_scaling.triggers.map((t: any, i: number) => (
-                                                    <div key={i} className="flex items-center justify-between text-[10px] text-zinc-400 bg-zinc-900/50 px-2 py-1 rounded">
+                                                    <div key={i} className="flex items-center justify-between text-[10px] text-muted-foreground dark:text-zinc-400 bg-muted/50 dark:bg-zinc-900/50 px-2 py-1 rounded">
                                                         <span className="font-bold text-amber-500/70">{t.type}</span>
                                                         <span>{t.threshold}</span>
                                                     </div>

@@ -129,7 +129,7 @@ export default function ProjectSummary({
       >
         {availableArtifacts.map(([key, artifact]: [string, any]) => {
           const Icon = agentIcons[key] || FileText
-          const colorClass = agentColors[key] || "text-gray-600 bg-gray-500/10 border-gray-200"
+          const colorClass = agentColors[key] || "text-gray-600 dark:text-gray-400 bg-gray-500/10 border-gray-200 dark:border-gray-800"
           
           // Extract content: MetaSOPArtifact has .content, otherwise use artifact directly
           const data = artifact?.content || artifact

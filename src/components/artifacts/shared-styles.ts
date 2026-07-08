@@ -39,16 +39,16 @@ export const artifactStyles = {
     gapLarge: "gap-3", // Large gap
   },
 
-  // Colors - Better contrast
+  // Colors - Theme-aware contrast for light and dark modes
   colors: {
     text: "text-foreground",
-    textMuted: "text-muted-foreground dark:text-muted-foreground/90", // Improved dark mode contrast
-    textSubtle: "text-muted-foreground/70 dark:text-muted-foreground/80",
-    bg: "bg-black",
-    bgMuted: "bg-neutral-900/60",
-    bgCard: "bg-neutral-950/80",
+    textMuted: "text-muted-foreground",
+    textSubtle: "text-muted-foreground/70",
+    bg: "bg-background",
+    bgMuted: "bg-muted/60",
+    bgCard: "bg-card",
     border: "border-border",
-    borderMuted: "border-border/50 dark:border-border/60", // Better contrast
+    borderMuted: "border-border/50",
   },
 
   // Badge sizes - Compact
