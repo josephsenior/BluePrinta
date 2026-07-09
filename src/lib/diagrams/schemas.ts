@@ -1,22 +1,40 @@
 import { z } from "zod";
 import { CreateDiagramRequest, UpdateDiagramRequest } from "@/types/diagram";
 
+const MAX_PROMPT_LENGTH = 50_000;
+const MAX_DOCUMENTS = 10;
+const MAX_DOCUMENT_CONTENT_LENGTH = 1_000_000;
+
+const PromptSchema = z.string()
+    .trim()
+    .min(1, "Prompt is required")
+    .max(MAX_PROMPT_LENGTH, "Prompt must be 50,000 characters or fewer");
+
+const UploadedDocumentSchema = z.object({
+    name: z.string().trim().min(1).max(255),
+    type: z.string().trim().min(1).max(100),
+    content: z.string().max(
+        MAX_DOCUMENT_CONTENT_LENGTH,
+        "Each document must be 1,000,000 characters or fewer"
+    ),
+});
+
 export const CreateDiagramSchema = z.object({
-    prompt: z.string().min(1, "Prompt is required"),
+    prompt: PromptSchema,
     options: z.object({
         includeStateManagement: z.boolean().optional(),
         includeAPIs: z.boolean().optional(),
         includeDatabase: z.boolean().optional(),
-        model: z.string().optional(),
+        model: z.string().max(100).optional(),
         reasoning: z.boolean().optional(),
     }).optional(),
-    documents: z.array(z.any()).optional(),
-    clarificationAnswers: z.record(z.string()).optional(),
+    documents: z.array(UploadedDocumentSchema).max(MAX_DOCUMENTS, "Attach at most 10 documents").optional(),
+    clarificationAnswers: z.record(z.string().max(5_000)).optional(),
 });
 
 export const ScopeRequestSchema = z.object({
-    prompt: z.string().min(1, "Prompt is required"),
-    model: z.string().optional(),
+    prompt: PromptSchema,
+    model: z.string().max(100).optional(),
 });
 
 export function validateScopeRequest(data: unknown) {

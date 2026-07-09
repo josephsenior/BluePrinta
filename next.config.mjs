@@ -7,9 +7,6 @@ const disableStandalone =
 
 const nextConfig = {
   ...(disableStandalone ? {} : { output: 'standalone' }),
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     unoptimized: true,
   },
