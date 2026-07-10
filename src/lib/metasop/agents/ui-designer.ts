@@ -264,8 +264,8 @@ Respond with ONLY the structured JSON object matching the schema. No explanation
     const primaryModel = context.options?.model;
     const uiAttempts: Array<{ model?: string; cacheId?: string; label: string }> = [
       { model: primaryModel, cacheId: context.cacheId, label: "primary" },
-      { model: "gemini-3.5-flash", cacheId: context.cacheId, label: "flash+cache" },
-      { model: "gemini-3.5-flash", cacheId: undefined, label: "flash-no-cache" },
+      { model: "gemini-3.7-flash", cacheId: context.cacheId, label: "flash+cache" },
+      { model: "gemini-3.7-flash", cacheId: undefined, label: "flash-no-cache" },
     ];
 
     let lastError: Error | undefined;

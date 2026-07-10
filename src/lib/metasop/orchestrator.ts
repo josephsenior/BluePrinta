@@ -123,6 +123,7 @@ export class MetaSOPOrchestrator {
       includeStateManagement?: boolean;
       includeAPIs?: boolean;
       includeDatabase?: boolean;
+      model?: string;
       reasoning?: boolean;
     },
     onProgress?: (event: MetaSOPEvent) => void,
@@ -130,6 +131,7 @@ export class MetaSOPOrchestrator {
     clarificationAnswers?: Record<string, string>
   ): Promise<MetaSOPResult> {
     const startTime = Date.now();
+    const model = options?.model || this.config.llm.model;
     
     // Create debug session for this generation run
     this.debugSession = createDebugSession(user_request);
@@ -137,7 +139,7 @@ export class MetaSOPOrchestrator {
     
     logger.info("Starting MetaSOP Orchestration", {
       agents: this.config.agents.enabled.length,
-      model: this.config.llm.model,
+      model,
       reasoning: options?.reasoning ?? false,
       debugSessionId: this.debugSession.sessionId,
       hasClarification: !!clarificationAnswers && Object.keys(clarificationAnswers).length > 0,
@@ -182,7 +184,7 @@ ${JSON.stringify(this.artifacts.pm_spec?.content, null, 2)}
             cacheContent,
             "You are a professional software development team. This is a shared context cache for collaborative agent work. Use it to avoid redundancy.",
             3600,
-            this.config.llm.model
+            model
           );
           logger.info("Orchestrator created base context cache", { cacheId: this.cacheId });
         } catch (cacheError) {
@@ -222,7 +224,7 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
             deepCacheContent,
             "You are a professional software development team. This is deep shared context including architecture design. Reference this to ensure technical consistency across all agents.",
             3600,
-            this.config.llm.model
+            model
           );
           this.cacheId = newCacheId;
           context.cacheId = this.cacheId;

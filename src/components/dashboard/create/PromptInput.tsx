@@ -129,10 +129,10 @@ export function PromptInput({
                                     <SelectValue placeholder="Model" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-background/95 backdrop-blur-xl border-border/50">
-                                    <SelectItem value="gemini-3.5-flash" className="text-xs cursor-pointer">
+                                    <SelectItem value="gemini-3.7-flash" className="text-xs cursor-pointer">
                                         <div className="flex items-center gap-2">
                                             <Zap className="h-3 w-3 text-amber-500" />
-                                            Gemini 3.5 Flash
+                                            Gemini 3.7 Flash
                                         </div>
                                     </SelectItem>
                                     <SelectItem value="gemini-3.1-pro-preview" className="text-xs cursor-pointer">

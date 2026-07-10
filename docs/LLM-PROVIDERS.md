@@ -11,7 +11,7 @@ Add your Gemini API key to `.env`:
 ```env
 GOOGLE_AI_API_KEY=your-gemini-api-key
 METASOP_LLM_PROVIDER=gemini
-METASOP_LLM_MODEL=gemini-3-flash-preview
+METASOP_LLM_MODEL=gemini-3.7-flash
 ```
 
 Get a free API key at **[Google AI Studio](https://aistudio.google.com/apikey)**.
@@ -22,7 +22,7 @@ Get a free API key at **[Google AI Studio](https://aistudio.google.com/apikey)**
 
 | Model | Speed | Quality | Context | Notes |
 |-------|-------|---------|---------|-------|
-| `gemini-3-flash-preview` | ⚡ Fast | Good | 1M tokens | **Default** — best balance of speed and cost |
+| `gemini-3.7-flash` | ⚡ Fast | Good | 1M tokens | **Default** — best balance of speed and cost |
 | `gemini-3-pro-preview` | Medium | Excellent | 1M tokens | Higher quality, slower |
 | `gemini-2.5-flash-preview-05-20` | ⚡ Fast | Good | 1M tokens | Stable release |
 
@@ -49,7 +49,7 @@ METASOP_LLM_MODEL=gemini-3-pro-preview npx tsx tests/integration/verify_full_pip
 |----------|---------|-------------|
 | `GOOGLE_AI_API_KEY` | *(required)* | Your Gemini API key |
 | `METASOP_LLM_PROVIDER` | `gemini` | Provider selection (`gemini` or `mock`) |
-| `METASOP_LLM_MODEL` | `gemini-3-flash-preview` | Model to use |
+| `METASOP_LLM_MODEL` | `gemini-3.7-flash` | Model to use |
 | `METASOP_AGENT_TIMEOUT` | `180000` | Agent timeout in ms (3 minutes) |
 | `METASOP_AGENT_RETRIES` | `0` | Number of retries on failure |
 
@@ -106,6 +106,6 @@ The mock provider returns predefined responses for all agents, allowing fast, re
 |---------|----------|
 | "Invalid API key" | Verify the key in `.env`; restart `pnpm dev` after changes |
 | Low quality output | Try `gemini-3-pro-preview` or increase `maxTokens` |
-| Slow responses | Use `gemini-3-flash-preview` (default) for speed |
+| Slow responses | Use `gemini-3.7-flash` (default) for speed |
 | Rate limit errors | Free tier: 15 RPM. Wait or upgrade your API plan |
 | Generation timeout | Increase `METASOP_AGENT_TIMEOUT` beyond 180000 |

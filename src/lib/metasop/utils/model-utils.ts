@@ -4,7 +4,7 @@ const DEPRECATED_MODEL_ALIASES: Record<string, string> = {
 };
 
 export const GEMINI_PRO_MODEL = "gemini-3.1-pro-preview";
-export const GEMINI_FLASH_MODEL = "gemini-3.5-flash";
+export const GEMINI_FLASH_MODEL = "gemini-3.7-flash";
 
 /** Map retired model strings to supported API model IDs. */
 export function resolveGeminiModel(model?: string | null): string | undefined {

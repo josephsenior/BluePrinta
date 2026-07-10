@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { calculateGeminiCost, type GeminiUsage } from "@/lib/metasop/adapters/gemini/cost";
 
 describe("Gemini cost", () => {
-  it("calculates cost for flash (default gemini-3.5)", () => {
+  it("calculates cost for flash (default gemini-3.7)", () => {
     const usage: GeminiUsage = {
       promptTokenCount: 1_000_000,
       candidatesTokenCount: 1_000_000,
@@ -10,7 +10,7 @@ describe("Gemini cost", () => {
       thoughtsTokenCount: 0,
     };
 
-    const cost = calculateGeminiCost("gemini-3.5-flash", usage);
+    const cost = calculateGeminiCost("gemini-3.7-flash", usage);
 
     // rates: input 0.1, output 0.4, cached 0.025 per 1M tokens
     expect(cost).toBeCloseTo(0.1 + 0.4, 10);

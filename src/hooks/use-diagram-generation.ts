@@ -140,7 +140,7 @@ export function useDiagramGeneration() {
     const [isGenerating, setIsGenerating] = useState(false)
     const [isScoping, setIsScoping] = useState(false)
     const [guidedMode, setGuidedMode] = useState(false)
-    const [selectedModel, setSelectedModel] = useState("gemini-3.5-flash")
+    const [selectedModel, setSelectedModel] = useState("gemini-3.7-flash")
     const [isReasoningEnabled, setIsReasoningEnabled] = useState(false)
 
     const [clarificationQuestions, setClarificationQuestions] = useState<ClarificationQuestion[] | null>(null)

@@ -8,8 +8,8 @@ export class VercelAILlmProvider implements LLMProvider {
     private modelId: string;
 
     constructor(_apiKey?: string, modelId?: string) {
-        // Default to Gemini 3.5 Flash, but can be overridden via config
-        this.modelId = modelId || "gemini-3.5-flash";
+        // Default to Gemini 3.7 Flash, but can be overridden via config
+        this.modelId = modelId || "gemini-3.7-flash";
     }
 
     async generate(prompt: string, options?: LLMOptions): Promise<string> {

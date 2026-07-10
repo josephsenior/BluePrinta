@@ -11,7 +11,7 @@ export const pmSchema = {
             description: "Array of INVEST-compliant user stories.",
             items: {
                 type: "object",
-                required: ["title", "story", "description", "priority", "story_points", "acceptance_criteria", "estimated_complexity", "user_value", "dependencies"],
+                required: ["id", "title", "story", "description", "priority", "story_points", "acceptance_criteria", "estimated_complexity", "user_value", "dependencies"],
                 properties: {
                     id: {
                         type: "string",
