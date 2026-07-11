@@ -1,328 +1,146 @@
-# Blueprinta 🏗️
+# BluePrinta
 
-[![CI](https://github.com/josephsenior/Metasop/actions/workflows/ci.yml/badge.svg)](https://github.com/josephsenior/Metasop/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC.svg)](https://tailwindcss.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-5.0-2D3748.svg)](https://www.prisma.io/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![GitHub Stars](https://img.shields.io/github/stars/josephsenior/Metasop?style=social)](https://github.com/josephsenior/Metasop/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/josephsenior/Metasop?style=social)](https://github.com/josephsenior/Metasop/network/members)
+> Multi-agent SDLC planning and structured UI generation from a single software idea.
 
-<div align="center">
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+[![Tests](https://img.shields.io/badge/tests-Vitest-6E9F18.svg)](https://vitest.dev/)
 
-**Blueprinta** is a high-fidelity, multi-agent orchestration platform designed to automate the end-to-end software development lifecycle. By coordinating specialized AI agents—Product Managers, Architects, Engineers, Security Experts, and DevOps—Blueprinta generates synchronized, production-ready system designs and implementation plans from simple natural language requests.
+BluePrinta coordinates seven specialized AI roles across product planning, architecture, infrastructure, security, UI/UX, implementation, and QA. It turns structured agent outputs into a browsable software-design workspace and supports targeted artifact refinement without regenerating the entire pipeline.
 
-[⚡ Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🤝 Contributing](#-contributing) • [💬 Community](#-community) • [⭐ Star us on GitHub](https://github.com/josephsenior/Metasop)
+## Why BluePrinta
 
-</div>
+Most multi-agent demos stop at a transcript. BluePrinta treats agent outputs as structured artifacts that can be validated, rendered, refined, exported, and passed downstream.
 
----
+The pipeline covers:
 
-## 🌟 Why Blueprinta?
+1. **Product Manager** — user stories and acceptance criteria
+2. **Architect** — API contracts, database schemas, and ADRs
+3. **DevOps** — infrastructure and CI/CD planning
+4. **Security** — threat modeling and security controls
+5. **UI Designer** — design tokens and component hierarchies
+6. **Engineer** — file structures and implementation plans
+7. **QA** — test strategies and verification plans
 
-Building software today requires coordinating multiple specialized roles, each with their own expertise and tools. Blueprinta automates this entire process by:
+## Core capabilities
 
-- **Eliminating manual coordination** between PMs, Architects, Engineers, Security, DevOps, and QA
-- **Ensuring consistency** across artifacts via tool-based refinement (Edit Artifacts API)
-- **Reducing development time** from weeks to hours
-- **Providing production-ready outputs** validated against industry standards
+- **Schema-driven artifacts** — agent outputs are validated with Zod and stored as structured JSON.
+- **Targeted refinement** — update artifacts with predefined operations such as `set_at_path` and `add_array_item` instead of rerunning the full pipeline.
+- **Interactive UI generation** — structured outputs are rendered into React interfaces rather than shown only as raw model text.
+- **Generation jobs + SSE** — long-running work is queued and progress is streamed with Server-Sent Events.
+- **Context-aware orchestration** — downstream agents receive relevant upstream artifacts.
+- **Gemini context caching** — reduces repeated prompt context across long generation flows.
+- **Export workflows** — generated documentation can be exported to Markdown, PDF, HTML, or PPTX.
+- **Local persistence** — SQLite-backed development setup with Prisma.
 
----
-
-## Key Features
-
-- **Tool-based Refinement**: Edit artifact JSON via predefined ops (`set_at_path`, `add_array_item`, etc.) without re-running agents. Use `POST /api/diagrams/artifacts/edit` with an `edits` array for deterministic, performant updates.
-- **Context-Aware Agents**: Each agent operates with deep awareness of upstream dependencies, ensuring architectural decisions are consistent across the stack.
-- **LLM-Native Caching**: Leverages advanced Gemini context caching to minimize latency and token consumption during generation.
-- **Structured Validation**: All agent outputs are validated against strict Zod schemas and JSON structures, ensuring reliable, machine-readable artifacts.
-- **Documentation Exports**: Export documentation as Markdown, PDF, HTML, or PPTX via the export endpoint.
-- **Project Estimates**: UI and exports include time, cost, and complexity estimates derived from artifacts.
-- **Draft Persistence**: Create prompts, settings, and uploads persist across reloads on the create page.
-- **Agent-to-Agent (A2A) Communication**: Specialized protocol for inter-agent delegation and task management.
-- **Generation Jobs + SSE**: Long-running generation is queued, with progress streamed via Server-Sent Events.
-- **Guest Support**: Limited diagram generation for non-authenticated users with session tracking.
-- **Gemini-Powered**: Built on Google Gemini with context caching for fast, high-quality structured output.
-
-## 🏗️ Architecture
-
-Blueprinta utilizes a sequential pipeline:
-
-1. **Product Manager**: Defines user stories and acceptance criteria.
-2. **Architect**: Generates API contracts, database schemas, and ADRs.
-3. **DevOps Infrastructure**: Designs CI/CD pipelines and cloud infrastructure (Terraform/K8s).
-4. **Security Architecture**: Performs threat modeling and defines security controls.
-5. **UI Designer**: Generates design tokens and component hierarchies.
-6. **Engineer Implementation**: Drafts file structures and technical implementation plans.
-7. **QA Verification**: Creates comprehensive test strategies and test cases.
-
-## 🛠️ Getting Started
-
-### ⚡ Quick Start
-
-Get Blueprinta up and running in under 5 minutes:
-
-```bash
-# Clone the repository
-git clone https://github.com/josephsenior/Metasop.git
-cd Metasop
-
-# Install dependencies
-pnpm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env and add your Gemini API key (GOOGLE_AI_API_KEY)
-
-# Create local database (SQLite)
-pnpm db:generate
-pnpm db:push
-
-# Run the development server
-pnpm dev
-
-# Open http://localhost:3000
-```
-
-### Prerequisites
-
-- **Node.js** 18+ ([Download](https://nodejs.org/))
-- **pnpm** (recommended) or npm/yarn
-- **Gemini API Key** ([Get one here](https://ai.google.dev/))
-- **Git** for version control
-
-### Configuration
-
-Create a `.env` file in the root directory (see `.env.example` for a template):
-
-```env
-# Required: Gemini API Key (get one at https://aistudio.google.com/apikey)
-GOOGLE_AI_API_KEY=your_gemini_api_key_here
-
-# Required for local storage: SQLite
-DATABASE_URL="file:./prisma/local.db"
-
-# Optional: LLM Provider (default: gemini)
-METASOP_LLM_PROVIDER=gemini
-
-# Optional: use mock provider for offline/dev tests
-# METASOP_LLM_PROVIDER=mock
-
-# Optional: Model (default: gemini-3-flash-preview)
-METASOP_LLM_MODEL=gemini-3-flash-preview
-
-# Optional: Agent timeout (ms) and retries
-# METASOP_AGENT_TIMEOUT=180000
-# METASOP_AGENT_RETRIES=0
-```
-
-### Running orchestration (integration tests)
-
-```bash
-# Run integration tests (orchestration flow)
-npx tsx tests/integration/verify_full_pipeline.ts
-npx tsx tests/integration/test_cascading_refinement.ts
-
-# With custom model
-METASOP_LLM_MODEL=gemini-3-pro-preview npx tsx tests/integration/verify_full_pipeline.ts
-```
-
-### Development
-
-```bash
-# Start development server
-pnpm dev
-
-# Type checking
-pnpm type-check
-
-# Linting
-pnpm lint
-pnpm lint:fix
-
-# Build for production
-pnpm build
-pnpm start
-```
-
-On Windows, `pnpm build` may fail with an **EPERM symlink** error when Next.js generates `.next/standalone`. See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#build-pnpm-build-fails-with-eperm-symlink-windows).
-
-### Testing
-
-The project uses [Vitest](https://vitest.dev/) for unit tests. The suite covers the Blueprinta pipeline: orchestrator, agents, services, adapters, and utilities.
-
-```bash
-pnpm test              # Run unit tests once
-pnpm test:watch        # Run tests in watch mode
-pnpm test:coverage     # Run tests with coverage report (lib/, components/, app/api/)
-pnpm test:ui           # Open Vitest UI
-```
-
-Integration tests under `tests/integration/` are excluded from the default run and can be executed separately. Coverage reports are written to `./coverage` (HTML, LCOV, text).
-
-If `pnpm test` fails with **spawn EPERM** in Cursor's terminal (common on Windows), see [Tests: spawn EPERM](docs/TROUBLESHOOTING.md#tests-spawn-eperm-in-cursor-terminal).
-
----
-
-## 📚 Documentation
-
-| Guide | Description |
-|-------|-------------|
-| **[Documentation Hub](docs/index.md)** | Start here — full index and learning path |
-| [Setup Guide](docs/SETUP.md) | Install, configure, and run locally |
-| [Architecture](docs/ARCHITECTURE.md) | System design and agent pipeline |
-| [API Reference](docs/API.md) | REST endpoints and examples |
-| [LLM Configuration](docs/LLM-PROVIDERS.md) | Gemini setup, model selection, optimization |
-| [Deployment](docs/DEPLOYMENT.md) | Deploy to Vercel, Docker, VPS |
-| [Testing](docs/TESTING.md) | Unit and integration testing |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and fixes |
-| [Contributing](CONTRIBUTING.md) | How to contribute |
-
----
-
-## 🏗️ Architecture
-
-Blueprinta utilizes a sequential pipeline with feedback loops:
+## Architecture
 
 ```mermaid
 graph LR
-    A[User Request] --> B[Product Manager]
+    A[User request] --> B[Product Manager]
     B --> C[Architect]
     C --> D[DevOps]
     D --> E[Security]
     E --> F[UI Designer]
     F --> G[Engineer]
-    G --> H[QA Verification]
+    G --> H[QA]
+    H --> I[Structured workspace]
+    I --> J[Targeted refinement]
 ```
 
-### Agent pipeline (sequential)
+The orchestration pipeline is sequential, but artifact refinement is tool-based. A user can modify a specific path or array item without asking the complete agent pipeline to regenerate every artifact.
 
-1. **Product Manager**: Defines user stories and acceptance criteria.
-2. **Architect**: Generates API contracts, database schemas, and ADRs.
-3. **DevOps Infrastructure**: Designs CI/CD pipelines and cloud infrastructure (Terraform/K8s).
-4. **Security Architecture**: Performs threat modeling and defines security controls.
-5. **UI Designer**: Generates design tokens and component hierarchies.
-6. **Engineer Implementation**: Drafts file structures and technical implementation plans.
-7. **QA Verification**: Creates comprehensive test strategies and test cases.
+## Quick start
 
-### Key components
+### Prerequisites
 
-- **Orchestrator**: Runs agents in order and passes artifacts as context; no graph in DB.
-- **Execution Service**: Handles timeouts, retries, and error handling.
-- **Refinement**: Tool-based only via `POST /api/diagrams/artifacts/edit` (no agent re-runs).
+- Node.js 18+
+- `pnpm`
+- A Google AI / Gemini API key
+- Git
 
----
-
-## 🤝 Contributing
-
-We love contributions! Whether you're fixing a bug, adding a feature, or improving documentation, we want your help.
-
-### How to Contribute
-
-1. **Fork the repository** and create your branch (`git checkout -b feature/amazing-feature`)
-2. **Make your changes** and ensure tests pass (`pnpm test`)
-3. **Commit your changes** (`git commit -m 'Add some amazing feature'`)
-4. **Push to the branch** (`git push origin feature/amazing-feature`)
-5. **Open a Pull Request**
-
-For detailed guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Development setup
+### Install
 
 ```bash
-# Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/Metasop.git
-cd Metasop
+git clone https://github.com/josephsenior/BluePrinta.git
+cd BluePrinta
 
-# Install dependencies
 pnpm install
-
-# Create a feature branch
-git checkout -b feature/my-feature
-
-# Make your changes and test
-pnpm test
-pnpm type-check
-pnpm lint
-
-# Commit and push
-git add .
-git commit -m "feat: add my feature"
-git push origin feature/my-feature
+cp .env.example .env
 ```
 
----
+Add your API key to `.env`:
 
-## 💬 Community
+```env
+GOOGLE_AI_API_KEY="your-google-ai-api-key"
+DATABASE_URL="file:./prisma/local.db"
+```
 
-- **GitHub Discussions**: [Join the conversation](https://github.com/josephsenior/Metasop/discussions)
-- **Discord Server**: [Join our Discord](https://discord.gg/Blueprinta) (coming soon)
-- **Twitter/X**: Follow [@MetaSOP_AI](https://twitter.com/MetaSOP_AI) for updates
-- **Blog**: Read our [latest posts](https://blog.Blueprinta.dev) (coming soon)
+The repository currently retains some legacy `METASOP_*` configuration variable names for runtime compatibility. See `.env.example` for the supported options.
 
-### Getting Help
+Initialize the local database and start the app:
 
-- 📖 Check the [Documentation](docs/)
-- 🐛 Report bugs on [GitHub Issues](https://github.com/josephsenior/Metasop/issues)
-- 💡 Ask questions on [GitHub Discussions](https://github.com/josephsenior/Metasop/discussions)
-- 💬 Join our [Discord community](https://discord.gg/Blueprinta)
+```bash
+pnpm db:generate
+pnpm db:push
+pnpm dev
+```
 
----
+Open `http://localhost:3000`.
 
-## 🗺️ Roadmap
+## Development
 
-- [x] Multi-agent orchestration system
-- [x] Tool-based refinement (Edit Artifacts API)
-- [x] Knowledge graph for dependency tracking
-- [x] Agent-to-agent communication protocol
-- [x] Web interface with Next.js
-- [ ] Additional LLM providers (OpenAI, Anthropic, etc.)
-- [x] SSE progress streaming for generation
-- [ ] Custom agent templates marketplace
-- [ ] Advanced analytics and insights
-- [ ] Mobile app
-- [ ] Enterprise features (SSO, audit logs, etc.)
+```bash
+pnpm type-check
+pnpm lint
+pnpm test
+pnpm test:coverage
+pnpm build
+```
 
-See [ROADMAP.md](ROADMAP.md) for detailed plans.
+Integration workflows under `tests/integration/` can be run separately:
 
----
+```bash
+npx tsx tests/integration/verify_full_pipeline.ts
+npx tsx tests/integration/test_cascading_refinement.ts
+```
 
-## 🌟 Sponsors
+## Key implementation ideas
 
-Support Blueprinta's development by becoming a sponsor! Your support helps us:
+### Structured generation
 
-- Maintain and improve the core platform
-- Add new features and integrations
-- Provide better documentation and support
-- Keep the project free and open source
+Agent outputs are validated against explicit schemas before they become application artifacts. This keeps the UI and downstream pipeline dependent on machine-readable structures rather than free-form model prose.
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-Us-fb7245?logo=githubsponsors)](https://github.com/sponsors/josephsenior)
+### Targeted artifact editing
 
----
+The artifact-edit API accepts predefined operations such as:
 
-## 📜 License
+- `set_at_path`
+- `add_array_item`
 
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
+This makes refinement deterministic and avoids paying the latency and context cost of a full pipeline rerun for a narrow edit.
 
----
+### Streaming long-running work
 
-## 🙏 Acknowledgments
+Generation runs as jobs, while SSE streams progress back to the interface. The UI can represent pipeline state without holding a single blocking request open for the complete generation lifecycle.
 
-- Built with [Next.js](https://nextjs.org/)
-- Powered by [Google Gemini](https://ai.google.dev/)
-- UI components from [Radix UI](https://www.radix-ui.com/)
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Testing with [Vitest](https://vitest.dev/)
+## Documentation
 
----
+- [Documentation hub](docs/index.md)
+- [Setup guide](docs/SETUP.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [API reference](docs/API.md)
+- [LLM configuration](docs/LLM-PROVIDERS.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Testing](docs/TESTING.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Contributing](CONTRIBUTING.md)
 
-<div align="center">
+## Status
 
-**Built with ❤️ by the Blueprinta community**
+BluePrinta is an open-source engineering project focused on structured multi-agent SDLC workflows and artifact-driven refinement. The current implementation is primarily Gemini-backed; additional provider support remains future work.
 
-[⭐ Star us on GitHub](https://github.com/josephsenior/Metasop) • [🐛 Report a Bug](https://github.com/josephsenior/Metasop/issues) • [💡 Request a Feature](https://github.com/josephsenior/Metasop/issues)
+## License
 
-*Automating the future of engineering*
-
-</div>
+MIT — see [LICENSE](LICENSE).
