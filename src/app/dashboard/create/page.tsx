@@ -17,6 +17,7 @@ import { useDiagramGeneration } from "@/hooks/use-diagram-generation"
 import { diagramsApi } from "@/lib/api/diagrams"
 import { generateAgentContextMarkdown } from "@/lib/metasop/utils/export-context"
 import { downloadFile } from "@/lib/utils"
+import { appendGuestSession } from "@/lib/utils/url"
 // useSearchParams requires special Suspense handling in some Next.js setups.
 // Read search params directly from `window.location` on the client to avoid
 // introducing a Suspense boundary in this client page.
@@ -141,6 +142,15 @@ export default function CreateDiagramPage() {
     toast({ title: "Context Exported", description: "Markdown context downloaded for AI usage." })
   }
 
+  const handleDocumentExport = (format: "markdown" | "pdf" | "pptx") => {
+    if (!currentDiagram?.id) return
+
+    const url = appendGuestSession(
+      `/api/diagrams/${currentDiagram.id}/export?format=${format}&artifact=documentation`
+    )
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+
   const handleSelectTemplate = (template: any) => {
     setPrompt(template.prompt)
     toast({
@@ -161,6 +171,7 @@ export default function CreateDiagramPage() {
           onToggleChat={() => setIsChatOpen(!isChatOpen)}
           onSave={handleSave}
           onExportContext={handleExportContext}
+          onExportDocument={handleDocumentExport}
         />
 
         <main className="flex-1 min-h-0 relative">
