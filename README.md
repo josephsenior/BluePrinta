@@ -1,146 +1,357 @@
-# BluePrinta
+# BluePrinta 🏗️
 
-> Multi-agent SDLC planning and structured UI generation from a single software idea.
-
+[![CI](https://github.com/josephsenior/BluePrinta/actions/workflows/ci.yml/badge.svg)](https://github.com/josephsenior/BluePrinta/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
-[![Tests](https://img.shields.io/badge/tests-Vitest-6E9F18.svg)](https://vitest.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC.svg)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-6-2D3748.svg)](https://www.prisma.io/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub Stars](https://img.shields.io/github/stars/josephsenior/BluePrinta?style=social)](https://github.com/josephsenior/BluePrinta/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/josephsenior/BluePrinta?style=social)](https://github.com/josephsenior/BluePrinta/network/members)
 
-BluePrinta coordinates seven specialized AI roles across product planning, architecture, infrastructure, security, UI/UX, implementation, and QA. It turns structured agent outputs into a browsable software-design workspace and supports targeted artifact refinement without regenerating the entire pipeline.
+<div align="center">
 
-## Why BluePrinta
+## Multi-Agent SDLC Planning & Structured UI Generation
 
-Most multi-agent demos stop at a transcript. BluePrinta treats agent outputs as structured artifacts that can be validated, rendered, refined, exported, and passed downstream.
+**BluePrinta** coordinates seven specialized AI roles across product planning, architecture, infrastructure, security, UI/UX, implementation, and QA.
 
-The pipeline covers:
+Instead of ending with a long agent transcript, BluePrinta turns model outputs into **validated, structured artifacts** that can be rendered, refined, streamed, persisted, and exported.
+
+[⚡ Quick Start](#-quick-start) · [✨ Features](#-key-features) · [🏗️ Architecture](#️-architecture) · [📚 Documentation](#-documentation) · [🤝 Contributing](#-contributing) · [🗺️ Roadmap](#️-roadmap)
+
+</div>
+
+---
+
+## 🌟 Why BluePrinta?
+
+A software idea usually crosses multiple disciplines before implementation: product requirements, architecture, infrastructure, security, UI design, engineering planning, and QA.
+
+BluePrinta models that process as a structured multi-agent pipeline.
+
+Its core design goal is **artifact continuity**:
+
+- upstream decisions remain available to downstream agents
+- agent outputs are validated against schemas
+- structured outputs can become interactive UI
+- narrow artifact edits do not require full-pipeline regeneration
+- long-running generation is observable from the frontend
+
+---
+
+## Key Features
+
+### 🧩 Seven specialized AI roles
 
 1. **Product Manager** — user stories and acceptance criteria
 2. **Architect** — API contracts, database schemas, and ADRs
-3. **DevOps** — infrastructure and CI/CD planning
-4. **Security** — threat modeling and security controls
+3. **DevOps Infrastructure** — CI/CD and infrastructure planning
+4. **Security Architecture** — threat modeling and security controls
 5. **UI Designer** — design tokens and component hierarchies
-6. **Engineer** — file structures and implementation plans
-7. **QA** — test strategies and verification plans
+6. **Engineer Implementation** — file structures and implementation plans
+7. **QA Verification** — test strategies and verification plans
 
-## Core capabilities
+### 🎯 Tool-based artifact refinement
 
-- **Schema-driven artifacts** — agent outputs are validated with Zod and stored as structured JSON.
-- **Targeted refinement** — update artifacts with predefined operations such as `set_at_path` and `add_array_item` instead of rerunning the full pipeline.
-- **Interactive UI generation** — structured outputs are rendered into React interfaces rather than shown only as raw model text.
-- **Generation jobs + SSE** — long-running work is queued and progress is streamed with Server-Sent Events.
-- **Context-aware orchestration** — downstream agents receive relevant upstream artifacts.
-- **Gemini context caching** — reduces repeated prompt context across long generation flows.
-- **Export workflows** — generated documentation can be exported to Markdown, PDF, HTML, or PPTX.
-- **Local persistence** — SQLite-backed development setup with Prisma.
+Edit artifact JSON through predefined operations such as:
 
-## Architecture
+- `set_at_path`
+- `add_array_item`
+
+The refinement API updates targeted artifact regions instead of rerunning the complete agent pipeline.
+
+```http
+POST /api/diagrams/artifacts/edit
+```
+
+This keeps narrow edits explicit and avoids unnecessary regeneration.
+
+### 🧱 Schema-driven structured outputs
+
+Agent outputs are validated against Zod schemas and machine-readable JSON structures before becoming application artifacts.
+
+That structure enables:
+
+- predictable rendering
+- downstream agent context
+- targeted refinement
+- artifact export
+- stronger failure detection than free-form prose alone
+
+### 🎨 Structured UI generation
+
+Upstream agent outputs are converted into interactive React views rather than being exposed only as raw JSON or chat transcripts.
+
+### ⚡ Generation jobs + SSE
+
+Long-running generation is represented as jobs, while progress is streamed to the UI through **Server-Sent Events**.
+
+### 🧠 Context-aware orchestration
+
+Each role receives the relevant artifacts produced earlier in the pipeline so architectural and implementation decisions can remain connected.
+
+### 💾 Gemini context caching
+
+The orchestration layer uses Gemini context caching to reduce repeated prompt context across generation flows.
+
+### 📤 Documentation exports
+
+Generated artifacts can be exported as:
+
+- Markdown
+- PDF
+- HTML
+- PPTX
+
+### 💿 Draft persistence
+
+Prompts, settings, and uploads persist across reloads on the creation flow.
+
+### 👤 Guest support
+
+Limited diagram generation is available for non-authenticated sessions with session tracking.
+
+---
+
+## 🏗️ Architecture
 
 ```mermaid
 graph LR
-    A[User request] --> B[Product Manager]
+    A[User Request] --> B[Product Manager]
     B --> C[Architect]
     C --> D[DevOps]
     D --> E[Security]
     E --> F[UI Designer]
     F --> G[Engineer]
-    G --> H[QA]
-    H --> I[Structured workspace]
-    I --> J[Targeted refinement]
+    G --> H[QA Verification]
+    H --> I[Structured Artifact Workspace]
+    I --> J[Targeted Refinement API]
+    J --> I
 ```
 
-The orchestration pipeline is sequential, but artifact refinement is tool-based. A user can modify a specific path or array item without asking the complete agent pipeline to regenerate every artifact.
+### Agent pipeline
 
-## Quick start
+| Stage | Primary output |
+|---|---|
+| Product Manager | User stories, requirements, acceptance criteria |
+| Architect | API contracts, schemas, ADRs |
+| DevOps | Infrastructure and CI/CD design |
+| Security | Threat model and security controls |
+| UI Designer | Tokens, layouts, component structure |
+| Engineer | File structure and implementation plan |
+| QA | Test strategy and verification plan |
 
-### Prerequisites
+### Key components
 
-- Node.js 18+
-- `pnpm`
-- A Google AI / Gemini API key
-- Git
+- **Orchestrator** — runs agents in sequence and forwards upstream artifacts
+- **Execution service** — handles timeouts, retries, and execution errors
+- **Artifact schemas** — enforce structured agent output contracts
+- **Refinement API** — applies tool-based targeted edits
+- **Generation jobs** — represent long-running orchestration work
+- **SSE streaming** — surfaces progress to the frontend
+- **Prisma + SQLite** — local development persistence
 
-### Install
+---
+
+## 🛠️ Getting Started
+
+### ⚡ Quick Start
 
 ```bash
+# Clone the repository
 git clone https://github.com/josephsenior/BluePrinta.git
 cd BluePrinta
 
+# Install dependencies
 pnpm install
+
+# Configure the environment
 cp .env.example .env
-```
 
-Add your API key to `.env`:
-
-```env
-GOOGLE_AI_API_KEY="your-google-ai-api-key"
-DATABASE_URL="file:./prisma/local.db"
-```
-
-The repository currently retains some legacy `METASOP_*` configuration variable names for runtime compatibility. See `.env.example` for the supported options.
-
-Initialize the local database and start the app:
-
-```bash
+# Create the local SQLite database
 pnpm db:generate
 pnpm db:push
+
+# Run the development server
 pnpm dev
 ```
 
 Open `http://localhost:3000`.
 
-## Development
+### Prerequisites
 
-```bash
-pnpm type-check
-pnpm lint
-pnpm test
-pnpm test:coverage
-pnpm build
+- **Node.js 18+**
+- **pnpm**
+- **Gemini API key**
+- **Git**
+
+### Configuration
+
+Create `.env` from `.env.example` and add a Google AI key:
+
+```env
+GOOGLE_AI_API_KEY="your-google-ai-api-key"
+DATABASE_URL="file:./prisma/local.db"
+
+METASOP_LLM_PROVIDER="gemini"
+METASOP_LLM_MODEL="gemini-3.5-flash"
 ```
 
-Integration workflows under `tests/integration/` can be run separately:
+> The codebase currently retains some legacy `METASOP_*` environment-variable names for runtime compatibility after the BluePrinta rename.
+
+Optional agent controls:
+
+```env
+# METASOP_AGENT_TIMEOUT=300000
+# METASOP_AGENT_RETRIES=2
+```
+
+---
+
+## 🧪 Testing & Development
+
+The CI workflow installs dependencies, type-checks, lints, runs the Vitest suite, and performs a production build.
+
+```bash
+# Development
+pnpm dev
+
+# Type checking
+pnpm type-check
+
+# Lint
+pnpm lint
+pnpm lint:fix
+
+# Unit tests
+pnpm test
+pnpm test:watch
+pnpm test:coverage
+pnpm test:ui
+
+# Production build
+pnpm build
+pnpm start
+```
+
+### Integration workflows
 
 ```bash
 npx tsx tests/integration/verify_full_pipeline.ts
 npx tsx tests/integration/test_cascading_refinement.ts
 ```
 
-## Key implementation ideas
+With a custom model:
 
-### Structured generation
+```bash
+METASOP_LLM_MODEL=gemini-3-pro-preview \
+npx tsx tests/integration/verify_full_pipeline.ts
+```
 
-Agent outputs are validated against explicit schemas before they become application artifacts. This keeps the UI and downstream pipeline dependent on machine-readable structures rather than free-form model prose.
+On Windows, `pnpm build` may encounter an **EPERM symlink** error when Next.js generates `.next/standalone`. See the [troubleshooting guide](docs/TROUBLESHOOTING.md#build-pnpm-build-fails-with-eperm-symlink-windows).
 
-### Targeted artifact editing
+---
 
-The artifact-edit API accepts predefined operations such as:
+## 📚 Documentation
 
-- `set_at_path`
-- `add_array_item`
+| Guide | Description |
+|---|---|
+| **[Documentation Hub](docs/index.md)** | Full documentation index and learning path |
+| [Setup Guide](docs/SETUP.md) | Install, configure, and run locally |
+| [Architecture](docs/ARCHITECTURE.md) | System design and agent pipeline |
+| [API Reference](docs/API.md) | REST endpoints and examples |
+| [LLM Configuration](docs/LLM-PROVIDERS.md) | Gemini setup and model selection |
+| [Deployment](docs/DEPLOYMENT.md) | Deployment guidance |
+| [Testing](docs/TESTING.md) | Unit and integration testing |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and fixes |
+| [Contributing](CONTRIBUTING.md) | Contribution workflow |
 
-This makes refinement deterministic and avoids paying the latency and context cost of a full pipeline rerun for a narrow edit.
+---
 
-### Streaming long-running work
+## 🤝 Contributing
 
-Generation runs as jobs, while SSE streams progress back to the interface. The UI can represent pipeline state without holding a single blocking request open for the complete generation lifecycle.
+Contributions are welcome.
 
-## Documentation
+1. Fork the repository
+2. Create a feature branch
 
-- [Documentation hub](docs/index.md)
-- [Setup guide](docs/SETUP.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [API reference](docs/API.md)
-- [LLM configuration](docs/LLM-PROVIDERS.md)
-- [Deployment](docs/DEPLOYMENT.md)
-- [Testing](docs/TESTING.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Contributing](CONTRIBUTING.md)
+```bash
+git checkout -b feature/my-feature
+```
 
-## Status
+3. Make the change
+4. Run the relevant checks
 
-BluePrinta is an open-source engineering project focused on structured multi-agent SDLC workflows and artifact-driven refinement. The current implementation is primarily Gemini-backed; additional provider support remains future work.
+```bash
+pnpm test
+pnpm type-check
+pnpm lint
+```
 
-## License
+5. Commit and push
 
-MIT — see [LICENSE](LICENSE).
+```bash
+git add .
+git commit -m "feat: add my feature"
+git push origin feature/my-feature
+```
+
+6. Open a pull request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+
+---
+
+## 🗺️ Roadmap
+
+### Implemented
+
+- [x] Multi-agent SDLC orchestration
+- [x] Tool-based artifact refinement
+- [x] Structured Zod validation
+- [x] Interactive web interface
+- [x] SSE generation progress
+- [x] Gemini context caching
+- [x] Documentation exports
+- [x] Draft persistence
+- [x] Guest generation flows
+
+### Next
+
+- [ ] Additional LLM providers
+- [ ] Deeper analytics and generation insights
+- [ ] Extended artifact editing operations
+- [ ] Stronger evaluation of cross-agent consistency
+- [ ] Enterprise authentication and audit capabilities
+
+See [ROADMAP.md](ROADMAP.md) for the detailed roadmap.
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+
+- [Next.js](https://nextjs.org/)
+- [Google Gemini](https://ai.google.dev/)
+- [Prisma](https://www.prisma.io/)
+- [Radix UI](https://www.radix-ui.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Vitest](https://vitest.dev/)
+
+---
+
+<div align="center">
+
+**Built as an experiment in turning multi-agent planning into structured, editable software artifacts.**
+
+⭐ If the architecture is useful to you, consider starring the repository.
+
+</div>
