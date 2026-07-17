@@ -1,6 +1,6 @@
-# Contributing to MetaSOP 🤝
+# Contributing to BluePrinta 🤝
 
-Thank you for your interest in contributing to MetaSOP! We welcome contributions from everyone, whether you're fixing a bug, adding a feature, improving documentation, or just helping others.
+Thank you for your interest in contributing to BluePrinta! We welcome contributions that fix bugs, add focused features, improve documentation, or strengthen tests.
 
 ## Table of Contents
 
@@ -387,7 +387,7 @@ What actually happens
 ## Environment
 - Node.js version:
 - OS:
-- MetaSOP version:
+- BluePrinta version or commit:
 
 ## Additional Context
 Logs, screenshots, etc.
@@ -427,7 +427,7 @@ Examples, mockups, etc.
 ## Getting Help
 
 - 📖 Check the [Documentation](docs/)
-- 💬 Join our [Discord community](https://discord.gg/metasop)
+- 💬 Start a conversation in [GitHub issues](https://github.com/josephsenior/BluePrinta/issues)
 - 🐛 Report bugs on [GitHub Issues](https://github.com/josephsenior/Metasop/issues)
 - 💡 Ask questions on [GitHub Discussions](https://github.com/josephsenior/Metasop/discussions)
 
@@ -437,7 +437,7 @@ Examples, mockups, etc.
 
 Contributors will be:
 
-- Listed in the [CONTRIBUTORS.md](CONTRIBUTORS.md) file
+- Visible in the repository's [contributor history](https://github.com/josephsenior/BluePrinta/graphs/contributors)
 - Mentioned in release notes
 - Eligible for contributor badges
 - Invited to join the core team for significant contributions
@@ -446,8 +446,8 @@ Contributors will be:
 
 ## License
 
-By contributing to MetaSOP, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to BluePrinta, you agree that your contributions will be licensed under the [MIT License](LICENSE).
 
 ---
 
-Thank you for contributing to MetaSOP! 🎉
+Thank you for contributing to BluePrinta! 🎉

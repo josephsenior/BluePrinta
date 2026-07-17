@@ -18,6 +18,8 @@
 
 Instead of ending with a long agent transcript, BluePrinta turns model outputs into **validated, structured artifacts** that can be rendered, refined, streamed, persisted, and exported.
 
+> **Project status:** active beta and reference implementation. Local use requires your own Gemini API key and self-managed data storage; this repository is not a hosted service.
+
 [⚡ Quick Start](#-quick-start) · [✨ Features](#-key-features) · [🏗️ Architecture](#️-architecture) · [📚 Documentation](#-documentation) · [🤝 Contributing](#-contributing) · [🗺️ Roadmap](#️-roadmap)
 
 </div>

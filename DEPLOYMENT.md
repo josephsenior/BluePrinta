@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide provides instructions for deploying MetaSOP in a production environment.
+This guide provides reference instructions for deploying BluePrinta in a self-managed environment.
 
 ## ✅ Before pushing to GitHub
 
@@ -13,7 +13,7 @@ This guide provides instructions for deploying MetaSOP in a production environme
 
 ### 1. Docker (Recommended)
 
-The easiest way to deploy MetaSOP is using Docker.
+The easiest way to deploy BluePrinta is using Docker.
 
 #### Build the image
 ```bash
@@ -30,7 +30,7 @@ docker run -p 3000:3000 \
 
 ### 2. Vercel (Next.js)
 
-MetaSOP is built with Next.js and can be easily deployed to Vercel.
+BluePrinta is built with Next.js and can also be deployed to Vercel.
 
 1. Connect your repository to Vercel.
 2. Add the required environment variables in the Vercel dashboard.

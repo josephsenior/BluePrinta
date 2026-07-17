@@ -1,12 +1,12 @@
-# MetaSOP Roadmap 🗺️
+# BluePrinta Roadmap 🗺️
 
-This document outlines the planned development roadmap for MetaSOP. Items are organized by priority and estimated timeline.
+This document outlines the planned development roadmap for BluePrinta. Items are organized by priority and estimated timeline.
 
 ---
 
 ## 🎯 Vision
 
-To become the leading open-source platform for AI-powered software development automation, enabling teams to build production-ready systems in hours instead of weeks.
+Build a useful open-source environment for exploring structured, multi-agent software-planning workflows.
 
 ---
 
@@ -154,18 +154,18 @@ We prioritize features based on community feedback. Help us decide what to build
 
 - Vote on feature requests in [GitHub Issues](https://github.com/josephsenior/Metasop/issues)
 - Participate in [GitHub Discussions](https://github.com/josephsenior/Metasop/discussions)
-- Join our [Discord community](https://discord.gg/metasop)
+- Join the conversation in [GitHub issues](https://github.com/josephsenior/BluePrinta/issues)
 
 ---
 
 ## 🎯 How to Contribute
 
-Want to help build MetaSOP? Here's how:
+Want to help build BluePrinta? Here's how:
 
 1. **Pick an issue** - Look for issues labeled `good first issue` or `help wanted`
 2. **Join discussions** - Share your ideas and feedback
 3. **Submit PRs** - Contribute code, documentation, or tests
-4. **Spread the word** - Share MetaSOP with your network
+4. **Share feedback** - Tell us which workflows are useful or confusing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
@@ -192,13 +192,13 @@ This roadmap is updated regularly based on:
 Major changes will be announced in:
 - [GitHub Discussions](https://github.com/josephsenior/Metasop/discussions)
 - [Release notes](CHANGELOG.md)
-- [Twitter/X](https://twitter.com/MetaSOP_AI)
+- [GitHub repository](https://github.com/josephsenior/BluePrinta)
 
 ---
 
 ## 💡 Feature Requests
 
-Have an idea for MetaSOP? We'd love to hear it!
+Have an idea for BluePrinta? We'd love to hear it!
 
 1. Check if it's already been [requested](https://github.com/josephsenior/Metasop/issues)
 2. If not, [open a feature request](https://github.com/josephsenior/Metasop/issues/new?template=feature_request.md)
@@ -209,4 +209,4 @@ Have an idea for MetaSOP? We'd love to hear it!
 
 **Last Updated**: January 2025
 
-*This roadmap is a living document and will evolve as MetaSOP grows.*
+*This roadmap is a living document and will evolve as BluePrinta grows.*
