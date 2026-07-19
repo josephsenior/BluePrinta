@@ -16,8 +16,8 @@ import { ProjectChatPanel } from "@/components/chat/ProjectChatPanel"
 import { useDiagramGeneration } from "@/hooks/use-diagram-generation"
 import { diagramsApi } from "@/lib/api/diagrams"
 import { generateAgentContextMarkdown } from "@/lib/metasop/utils/export-context"
-import { downloadFile } from "@/lib/utils"
-import { appendGuestSession } from "@/lib/utils/url"
+import { downloadBlob, downloadFile } from "@/lib/utils"
+import { fetchDiagramApi } from "@/lib/api/diagram-fetch"
 // useSearchParams requires special Suspense handling in some Next.js setups.
 // Read search params directly from `window.location` on the client to avoid
 // introducing a Suspense boundary in this client page.
@@ -142,13 +142,45 @@ export default function CreateDiagramPage() {
     toast({ title: "Context Exported", description: "Markdown context downloaded for AI usage." })
   }
 
-  const handleDocumentExport = (format: "markdown" | "pdf" | "pptx") => {
+  const handleDocumentExport = async (exportType: string) => {
     if (!currentDiagram?.id) return
 
-    const url = appendGuestSession(
-      `/api/diagrams/${currentDiagram.id}/export?format=${format}&artifact=documentation`
-    )
-    window.open(url, "_blank", "noopener,noreferrer")
+    const exports: Record<string, { artifact: string; format?: string; label: string }> = {
+      markdown: { artifact: "documentation", format: "markdown", label: "Markdown" },
+      pdf: { artifact: "documentation", format: "pdf", label: "PDF" },
+      pptx: { artifact: "documentation", format: "pptx", label: "PowerPoint" },
+      openapi: { artifact: "openapi", label: "OpenAPI specification" },
+      sql: { artifact: "sql", format: "migration", label: "SQL migration" },
+      erd: { artifact: "erd", format: "mermaid", label: "ERD diagram" },
+      adr: { artifact: "adr", label: "ADR document" },
+      testPlan: { artifact: "test-plan", label: "test plan" },
+    }
+    const config = exports[exportType]
+    if (!config) return
+
+    const progressToast = toast({ title: `Preparing ${config.label}…`, description: "Your download will start automatically." })
+    try {
+      const search = new URLSearchParams({ artifact: config.artifact })
+      if (config.format) search.set("format", config.format)
+      const response = await fetchDiagramApi(`/api/diagrams/${currentDiagram.id}/export?${search.toString()}`)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.message || "Export failed")
+      }
+
+      const blob = await response.blob()
+      const disposition = response.headers.get("content-disposition")
+      const filename = disposition?.match(/filename="?([^";]+)"?/)?.[1] || `${currentDiagram.title || "blueprinta-export"}.${config.format || "json"}`
+      downloadBlob(blob, filename)
+      progressToast.update({ id: progressToast.id, title: `${config.label} ready`, description: "Your download has started." })
+    } catch (error) {
+      progressToast.update({
+        id: progressToast.id,
+        title: "Export failed",
+        description: error instanceof Error ? error.message : "Unable to create the export.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSelectTemplate = (template: any) => {

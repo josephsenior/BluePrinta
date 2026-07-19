@@ -46,7 +46,7 @@ interface CreateHeaderProps {
     onToggleChat: () => void
     onSave: () => void
     onExportContext: () => void
-    onExportDocument: (format: "markdown" | "pdf" | "pptx") => void
+    onExportDocument: (exportType: string) => void
 }
 
 export function CreateHeader({
@@ -249,6 +249,26 @@ export function CreateHeader({
                                     <DropdownMenuItem onClick={() => onExportDocument("pptx")}>
                                         <FileText className="mr-2 h-4 w-4" />
                                         PowerPoint
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("openapi")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        OpenAPI specification
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("sql")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        SQL migration
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("erd")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        ERD diagram
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("adr")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        ADR document
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("testPlan")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Test plan
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>

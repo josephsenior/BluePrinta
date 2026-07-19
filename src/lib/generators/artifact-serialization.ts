@@ -30,3 +30,29 @@ export function stringifyArtifact(value: unknown): string {
     2
   );
 }
+
+export const ARTIFACT_LABELS: Record<string, string> = {
+  pm_spec: "Product Specification",
+  arch_design: "Architecture Design",
+  devops_infrastructure: "Infrastructure & DevOps",
+  security_architecture: "Security Architecture",
+  ui_design: "UI & Design System",
+  engineer_impl: "Engineering Blueprint",
+  qa_verification: "Quality Assurance & Testing",
+};
+
+export function artifactLabel(key: string): string {
+  return ARTIFACT_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function artifactSummary(content: unknown): string | undefined {
+  if (typeof content === "string") return content;
+  if (!content || typeof content !== "object" || Array.isArray(content)) return undefined;
+
+  const record = content as Record<string, unknown>;
+  for (const key of ["summary", "description", "architecture_overview", "overview", "project_name", "title"]) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return undefined;
+}
