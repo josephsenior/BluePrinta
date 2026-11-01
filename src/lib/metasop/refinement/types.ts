@@ -110,6 +110,7 @@ export interface RefinementRequest {
     previousArtifacts: Record<string, any>;
     chatHistory?: string;
     activeTab?: string;
+    model?: string;
 }
 
 export interface RefinementContext {
@@ -117,4 +118,5 @@ export interface RefinementContext {
     artifacts: Record<string, any>;
     chatHistory?: string;
     activeTab?: string;
+    model?: string;
 }

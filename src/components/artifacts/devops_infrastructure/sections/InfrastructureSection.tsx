@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { Globe } from "lucide-react"
-import { TabsContent } from "@/components/ui/tabs"
+import { ArtifactSection as TabsContent } from "@/components/artifacts/ArtifactSection"
 import { Badge } from "@/components/ui/badge"
 import { containerVariants as container } from "../../shared-components"
 import { ServiceCard } from "../ServiceCard"

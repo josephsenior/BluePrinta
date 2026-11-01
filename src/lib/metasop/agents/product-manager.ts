@@ -51,13 +51,16 @@ ${domainContext ? `\n${domainContext}\n` : ""}
 2. **User Stories (INVEST-Compliant)**
    - Each story must be: Independent, Negotiable, Valuable, Estimable, Small, Testable
    - Use format: "As a [role], I want [feature] so that [benefit]"
-   - Include specific, measurable acceptance criteria for each story
+   - Cover all meaningful requested workflows, roles, lifecycle stages and failure cases with separate, implementable stories. Scale the number of stories to the scope; do not pad with duplicates or invent unsupported features.
+   - For each story provide 3-5 specific, observable acceptance criteria covering success and relevant validation, permissions or failure cases. Add more when justified by complexity.
+   - Make each criterion independently testable, with concrete inputs and expected outcomes. Mark assumptions explicitly rather than presenting guesses as requirements.
    - Assign realistic story points (Fibonacci: 1, 2, 3, 5, 8, 13)
    - Map dependencies between stories
 
 4. **Acceptance Criteria**
    - Write testable, unambiguous criteria
-   - Include both functional and non-functional requirements
+   - Include both functional and relevant non-functional requirements, mapping them to the actual project
+   - Cover important edge cases and access control. Avoid vague criteria such as "works correctly".
    - Use Given/When/Then format where applicable
 
 4. **SWOT Analysis & Stakeholder Mapping**

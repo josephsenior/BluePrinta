@@ -54,7 +54,8 @@ STRICT GUIDELINES:
                 cacheId = await createCacheWithLLM(
                     body.contextMarkdown,
                     systemInstruction,
-                    3600 // 1 hour TTL
+                    3600, // 1 hour TTL
+                    body.model
                 );
             } catch (cacheError) {
                 console.warn("[Ask] Failed to create cache, falling back to standard prompt:", cacheError);
@@ -105,7 +106,8 @@ ANSWER:`.trim();
                                 temperature: 0.2,
                                 role: "Blueprinta Assistant",
                                 cacheId: cacheId,
-                                systemInstruction: cacheId ? undefined : systemInstruction
+                                systemInstruction: cacheId ? undefined : systemInstruction,
+                                model: body.model,
                             }
                         );
 
@@ -146,7 +148,8 @@ ANSWER:`.trim();
                 temperature: 0.2, // Lower temperature for more factual answers
                 role: "Blueprinta Assistant",
                 cacheId: cacheId,
-                systemInstruction: cacheId ? undefined : systemInstruction
+                systemInstruction: cacheId ? undefined : systemInstruction,
+                model: body.model,
             });
 
             return createSuccessResponse(
@@ -177,7 +180,8 @@ ANSWER:`.trim();
                 const answer = await generateWithLLM(retryPrompt, {
                     temperature: 0.2,
                     role: "Blueprinta Assistant",
-                    systemInstruction: systemInstruction
+                    systemInstruction: systemInstruction,
+                    model: body.model,
                 });
 
                 return createSuccessResponse(

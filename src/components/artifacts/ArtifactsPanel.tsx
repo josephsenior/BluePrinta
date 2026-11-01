@@ -21,6 +21,16 @@ import EngineerArtifact from "@/components/artifacts/engineer_impl"
 import UIDesignArtifact from "@/components/artifacts/ui_design"
 import QAArtifact from "@/components/artifacts/qa_verification"
 
+const responsibilities: Record<string, string> = {
+    pm_spec: "Defines user needs, scope and acceptance criteria",
+    arch_design: "Designs the system, its interfaces and data",
+    security_architecture: "Identifies threats and specifies protections",
+    devops_infrastructure: "Plans infrastructure, deployment and operations",
+    ui_design: "Designs the interface, components and accessibility",
+    engineer_impl: "Plans implementation, dependencies and technical work",
+    qa_verification: "Defines tests, risks and verification",
+}
+
 interface ArtifactsPanelProps {
     diagramId?: string
     artifacts: {
@@ -110,6 +120,7 @@ export function ArtifactsPanel({
                                         <Badge className="text-[8px] h-3 px-1 py-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Modified</Badge>
                                     )}
                                 </h3>
+                                {responsibilities[activeTab] && <p className="mt-1 text-xs text-muted-foreground">{responsibilities[activeTab]}</p>}
                             </div>
                         </div>
 

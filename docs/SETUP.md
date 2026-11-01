@@ -39,7 +39,7 @@ GOOGLE_AI_API_KEY="your-google-ai-api-key"
 DATABASE_URL="file:./prisma/local.db"
 
 # Optional
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NEXT_PUBLIC_API_URL="/api"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
@@ -101,7 +101,7 @@ Stop the app and copy `prisma/local.db` to a safe location before updating Bluep
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3000/api` | API base URL |
+| `NEXT_PUBLIC_API_URL` | `/api` | API base URL |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | App URL |
 | `METASOP_LLM_PROVIDER` | `gemini` | LLM provider (`gemini` or `mock`) |
 | `METASOP_LLM_MODEL` | `gemini-3.7-flash` | Override LLM model |

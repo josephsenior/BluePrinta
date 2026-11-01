@@ -1,6 +1,6 @@
 # LLM Configuration
 
-Blueprinta uses **Google Gemini** as its LLM provider. This guide covers configuration, model selection, and optimization.
+Blueprinta supports Google Gemini and ChatGPT plan usage. For ChatGPT sign-in and subscription setup, see [ChatGPT plan provider](CHATGPT-PLAN.md). This guide covers Gemini configuration, model selection, and optimization.
 
 ---
 
@@ -48,7 +48,7 @@ METASOP_LLM_MODEL=gemini-3-pro-preview npx tsx tests/integration/verify_full_pip
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GOOGLE_AI_API_KEY` | *(required)* | Your Gemini API key |
-| `METASOP_LLM_PROVIDER` | `gemini` | Provider selection (`gemini` or `mock`) |
+| `METASOP_LLM_PROVIDER` | `gemini` | Provider selection (`gemini`, `chatgpt`, or `mock`) |
 | `METASOP_LLM_MODEL` | `gemini-3.7-flash` | Model to use |
 | `METASOP_AGENT_TIMEOUT` | `180000` | Agent timeout in ms (3 minutes) |
 | `METASOP_AGENT_RETRIES` | `0` | Number of retries on failure |

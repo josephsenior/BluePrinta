@@ -5,6 +5,7 @@
  */
 
 import { generateStructuredWithLLM } from "@/lib/metasop/utils/llm-helper";
+import { getConfig } from "@/lib/metasop/config";
 import { resolveGeminiModel } from "@/lib/metasop/utils/model-utils";
 import { z } from "zod";
 
@@ -163,6 +164,7 @@ export async function scopePrompt(prompt: string, model?: string): Promise<Scope
     }
   }
 
+  if ((model ? !model.startsWith("gemini-") : getConfig().llm.provider === "chatgpt") && lastError) throw lastError;
   console.warn("[Scoping] LLM failed after retries, using default questions:", lastError?.message);
   return { proceed: false, questions: getDefaultScopeQuestions() };
 }

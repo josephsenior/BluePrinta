@@ -79,6 +79,7 @@ export const AskQuestionSchema = z.object({
     activeTab: z.string().optional(),
     cacheId: z.string().optional(),
     conversationHistory: z.string().optional(),
+    model: z.string().max(100).optional(),
 });
 
 export function validateAskQuestionRequest(data: unknown) {
@@ -91,6 +92,7 @@ export const RefineArtifactsSchema = z.object({
     previousArtifacts: z.record(z.any()),
     chatHistory: z.string().optional(),
     activeTab: z.string().optional(),
+    model: z.string().max(100).optional(),
 });
 
 export function validateRefineArtifactsRequest(data: unknown) {

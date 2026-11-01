@@ -308,7 +308,11 @@ export function getQualityCheckPrompt(agentType: keyof typeof QUALITY_CRITERIA):
 QUALITY SELF-CHECK (ensure your output meets these criteria):
 ${criteria.map((c, i) => `${i + 1}. ${c}`).join("\n")}
 
-Revise your output so all criteria above are met before returning.`;
+Before returning, check your work against the user request and upstream artifacts:
+- Cover each relevant workflow and responsibility, including meaningful edge cases and failure paths. Scale detail to project complexity, without padding or invented scope.
+- Make interfaces, decisions and verification steps concrete enough to implement or review. Refer to existing story identifiers where the schema supports it.
+- Keep terminology and decisions consistent with earlier artifacts. Explicitly state unresolved assumptions or conflicts in an appropriate schema field instead of silently inventing certainty.
+Revise your output so all applicable criteria above are met before returning.`;
 }
 
 /**

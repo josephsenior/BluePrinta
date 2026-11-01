@@ -167,6 +167,11 @@ export function useDiagramGeneration() {
             if (savedPrompt) setPrompt(savedPrompt)
 
             const savedModel = localStorage.getItem("metasop_selected_model")
+            if (!savedModel) {
+                void fetch("/api/chatgpt").then(response => response.ok ? response.json() : null).then(data => {
+                    if (data?.defaultModel) setSelectedModel(data.defaultModel)
+                }).catch(() => {})
+            }
             if (savedModel) {
                 const resolved = resolveGeminiModel(savedModel) ?? savedModel
                 setSelectedModel(resolved)

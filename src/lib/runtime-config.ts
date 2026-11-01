@@ -16,7 +16,7 @@ export interface RuntimeFeatureFlags {
 
 /** LLM slice for MetaSOP */
 export interface RuntimeLLMConfig {
-  provider: "gemini" | "mock";
+  provider: "gemini" | "mock" | "chatgpt";
   apiKey?: string;
   model: string;
   temperature: number;
@@ -101,11 +101,12 @@ export function getRuntimeConfig(): RuntimeConfig {
 
   const llm: RuntimeLLMConfig = {
     ...defaultLlm,
-    ...(env.METASOP_LLM_PROVIDER === "gemini" || env.METASOP_LLM_PROVIDER === "mock"
+    ...(env.METASOP_LLM_PROVIDER === "gemini" || env.METASOP_LLM_PROVIDER === "mock" || env.METASOP_LLM_PROVIDER === "chatgpt"
       ? { provider: env.METASOP_LLM_PROVIDER }
       : {}),
   };
-  if (env.METASOP_LLM_MODEL) llm.model = env.METASOP_LLM_MODEL;
+  if (llm.provider === "chatgpt") llm.model = "gpt-6.1-terra";
+  if (env.METASOP_LLM_MODEL && !(llm.provider === "chatgpt" && env.METASOP_LLM_MODEL.startsWith("gemini-"))) llm.model = env.METASOP_LLM_MODEL;
   if (env.METASOP_LLM_API_KEY) llm.apiKey = env.METASOP_LLM_API_KEY;
   else if (llm.provider === "gemini" && (env.GOOGLE_AI_API_KEY || env.GEMINI_API_KEY)) {
     llm.apiKey = env.GOOGLE_AI_API_KEY || env.GEMINI_API_KEY;

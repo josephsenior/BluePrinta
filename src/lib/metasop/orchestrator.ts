@@ -165,7 +165,7 @@ export class MetaSOPOrchestrator {
       context.previous_artifacts.pm_spec = this.artifacts.pm_spec;
 
       // START CONTEXT CACHING: Create base cache after PM spec is ready
-      if (this.config.llm.provider === "gemini" && this.config.performance.cacheEnabled) {
+      if (model?.startsWith("gemini-") && this.config.performance.cacheEnabled) {
         try {
           // Format documents for context if they exist
           const documentsSection = documents && documents.length > 0
@@ -202,7 +202,7 @@ ${JSON.stringify(this.artifacts.pm_spec?.content, null, 2)}
       context.previous_artifacts.arch_design = this.artifacts.arch_design;
 
       // UPDATE CACHE: After Architect, the context grows significantly. 
-      if (this.config.llm.provider === "gemini" && this.config.performance.cacheEnabled) {
+      if (model?.startsWith("gemini-") && this.config.performance.cacheEnabled) {
         try {
           // Format documents for context if they exist
           const documentsSection = documents && documents.length > 0
@@ -358,7 +358,7 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
       });
     }
 
-    const options = this.getExecutionOptions(stepId, role);
+    const options = this.getExecutionOptions(stepId, role, context?.options?.model);
 
     // Capture last partial/artifact so we can send it on timeout for UI display
     let lastPartialForStep: string | BackendArtifactData | null = null;
@@ -542,11 +542,13 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
   /**
    * Get execution options for a specific agent
    */
-  private getExecutionOptions(stepId: string, role: string) {
+  private getExecutionOptions(stepId: string, role: string, model?: string) {
     const { agentConfigs, defaultTimeout, defaultRetries } = this.config.agents;
     const agentConfig = agentConfigs[stepId];
 
-    const timeout = agentConfig?.timeout || defaultTimeout;
+    const baseTimeout = agentConfig?.timeout || defaultTimeout;
+    const selectedModel = model || this.config.llm.model;
+    const timeout = selectedModel && !selectedModel.startsWith("gemini-") && this.config.llm.provider !== "mock" ? Math.max(baseTimeout, 600000) : baseTimeout;
     const retries = agentConfig?.retries || defaultRetries;
 
     // Create retry policy

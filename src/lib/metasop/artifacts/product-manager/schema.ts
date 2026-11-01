@@ -4,7 +4,7 @@ export const pmSchema = {
     required: ["user_stories", "acceptance_criteria", "summary", "description", "assumptions", "out_of_scope", "swot", "stakeholders", "invest_analysis"],
     propertyOrdering: ["summary", "description", "user_stories", "acceptance_criteria", "assumptions", "out_of_scope", "swot", "stakeholders", "invest_analysis"],
     properties: {
-        summary: { type: "string", maxLength: 250, description: "A technical, 1-2 sentence summary of the product. No conversational filler." },
+        summary: { type: "string", maxLength: 500, description: "A technical, 1-2 sentence summary of the product. No conversational filler." },
         description: { type: "string", maxLength: 500, description: "Detailed product vision, target audience, and value proposition." },
         user_stories: {
             type: "array",
@@ -25,12 +25,12 @@ export const pmSchema = {
                     },
                     story: {
                         type: "string",
-                        maxLength: 250,
+                        maxLength: 500,
                         description: "Story in 'As a [role], I want [feature] so that [benefit]' format.",
                     },
                     description: {
                         type: "string",
-                        maxLength: 350,
+                        maxLength: 700,
                         description: "Brief technical description with implementation hints.",
                     },
                     priority: {
@@ -48,7 +48,7 @@ export const pmSchema = {
                         type: "array",
                         items: {
                             type: "string",
-                            maxLength: 200,
+                            maxLength: 500,
                         },
                         description: "Specific, testable acceptance criteria for this story.",
                     },
@@ -88,12 +88,12 @@ export const pmSchema = {
                     },
                     description: {
                         type: "string",
-                        maxLength: 200,
+                        maxLength: 500,
                         description: "Detailed description.",
                     },
                     criteria: {
                         type: "string",
-                        maxLength: 200,
+                        maxLength: 500,
                         description: "The actual acceptance criterion.",
                     },
                     priority: {

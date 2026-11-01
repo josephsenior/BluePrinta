@@ -6,26 +6,26 @@ import { createLLMProvider, LLMProvider, LLMProgressEvent } from "../adapters/ll
 import { getConfig } from "../config";
 import { logger } from "./logger";
 
-let llmProviderInstance: LLMProvider | null = null;
+const providers = new Map<string, LLMProvider>();
 
-/**
- * Get or create LLM provider instance
- */
-export function getLLMProvider(): LLMProvider {
-  if (!llmProviderInstance) {
-    const config = getConfig();
-    try {
-      // Prioritize vercel-ai if explicitly set or if possible
-      const providerType = process.env.METASOP_LLM_PROVIDER || config.llm.provider || "mock";
-      llmProviderInstance = createLLMProvider(providerType);
-      logger.info("LLM provider initialized", { provider: providerType, model: config.llm.model });
-    } catch (error: any) {
-      logger.warn("Failed to initialize LLM provider, falling back to mock", { error: error.message });
-      // Fallback to mock if provider fails
-      llmProviderInstance = createLLMProvider("mock");
-    }
+/** Select per request so simultaneous jobs can use different providers safely. */
+export function providerForModel(model: string | undefined, fallback: string): string {
+  if (fallback === "mock") return "mock";
+  if (model?.startsWith("gemini-")) return "gemini";
+  if (model) return "chatgpt";
+  return fallback;
+}
+
+export function getLLMProvider(model?: string): LLMProvider {
+  const config = getConfig();
+  const providerType = providerForModel(model, config.llm.provider || "mock");
+  let provider = providers.get(providerType);
+  if (!provider) {
+    provider = createLLMProvider(providerType);
+    providers.set(providerType, provider);
+    logger.info("LLM provider initialized", { provider: providerType });
   }
-  return llmProviderInstance;
+  return provider;
 }
 
 /**
@@ -43,7 +43,7 @@ export async function generateWithLLM(
     model?: string; // Per-call model override
   }
 ): Promise<string> {
-  const provider = getLLMProvider();
+  const provider = getLLMProvider(options?.model);
   const config = getConfig();
 
   return provider.generate(prompt, {
@@ -74,7 +74,7 @@ export async function generateStructuredWithLLM<T>(
     model?: string;
   }
 ): Promise<T> {
-  const provider = getLLMProvider();
+  const provider = getLLMProvider(options?.model);
   const config = getConfig();
 
   return provider.generateStructured<T>(prompt, schema, {
@@ -105,7 +105,7 @@ export async function generateStreamingStructuredWithLLM<T>(
     model?: string; // Per-agent model override
   }
 ): Promise<T> {
-  const provider = getLLMProvider();
+  const provider = getLLMProvider(options?.model);
   const config = getConfig();
 
   // Use per-agent model override if provided, otherwise use global config
@@ -131,7 +131,7 @@ export async function generateStreamingStructuredWithLLM<T>(
  * Create a context cache using Gemini LLM
  */
 export async function createCacheWithLLM(content: string, systemInstruction?: string, ttlSeconds: number = 3600, model?: string): Promise<string> {
-  const provider = getLLMProvider();
+  const provider = getLLMProvider(model);
   const config = getConfig();
 
   if (!provider.createCache) {
@@ -154,9 +154,10 @@ export async function generateStreamWithLLM(
     cacheId?: string;
     role?: string;
     systemInstruction?: string;
+    model?: string;
   }
 ): Promise<string> {
-  const provider = getLLMProvider();
+  const provider = getLLMProvider(options?.model);
 
   if (!provider.generateStream) {
     // Fallback to non-streaming if provider doesn't support streaming
@@ -174,7 +175,7 @@ export async function generateStreamWithLLM(
   return provider.generateStream(prompt, onChunk, {
     temperature: options?.temperature ?? config.llm.temperature,
     maxTokens: options?.maxTokens ?? config.llm.maxTokens,
-    model: config.llm.model,
+    model: options?.model ?? config.llm.model,
     reasoning: options?.reasoning,
     cacheId: options?.cacheId,
     role: options?.role,
@@ -186,5 +187,5 @@ export async function generateStreamWithLLM(
  * Reset LLM provider instance (useful for testing)
  */
 export function resetLLMProvider(): void {
-  llmProviderInstance = null;
+  providers.clear();
 }

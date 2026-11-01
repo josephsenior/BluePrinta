@@ -4,7 +4,7 @@ import { uiDesignerSchema as uiSchema } from "../artifacts/ui-designer/schema";
 import { generateStreamingStructuredWithLLM } from "../utils/llm-helper";
 import { logger } from "../utils/logger";
 import { FEW_SHOT_EXAMPLES, getDomainContext, getQualityCheckPrompt } from "../utils/prompt-standards";
-import { getAgentTemperature, getAgentMaxTokens } from "../config";
+import { getAgentTemperature, getAgentMaxTokens, getConfig } from "../config";
 
 /**
  * Sanitizes a color value to ensure it's a valid hex code.
@@ -267,6 +267,8 @@ Respond with ONLY the structured JSON object matching the schema. No explanation
       { model: "gemini-3.7-flash", cacheId: context.cacheId, label: "flash+cache" },
       { model: "gemini-3.7-flash", cacheId: undefined, label: "flash-no-cache" },
     ];
+
+    if (!(primaryModel || getConfig().llm.model)?.startsWith("gemini-")) uiAttempts.splice(1);
 
     let lastError: Error | undefined;
 

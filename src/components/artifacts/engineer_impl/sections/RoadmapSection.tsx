@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion } from "framer-motion"
-import { TabsContent } from "@/components/ui/tabs"
+import { ArtifactSection as TabsContent } from "@/components/artifacts/ArtifactSection"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ListTodo, CheckCircle2 } from "lucide-react"

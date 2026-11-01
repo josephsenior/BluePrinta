@@ -119,7 +119,8 @@ function applyPatch(obj: any, path: string, value: any, op: "set" | "add" | "rem
  */
 export async function applyBatchUpdate(
     editPlan: EditPlan,
-    currentArtifacts: Record<string, any>
+    currentArtifacts: Record<string, any>,
+    model?: string
 ): Promise<RefinementOutput> {
     // Normalize artifact keys for LLM
     const normalizedArtifacts: Record<string, any> = {};
@@ -136,7 +137,7 @@ export async function applyBatchUpdate(
     const response = await generateWithLLM(prompt, {
         temperature: 0.1, // Very low for precise execution
         role: "Batch Updater",
-        model: "gemini-3.7-flash", // Use Flash for efficiency and speed
+        model,
     });
 
     try {
