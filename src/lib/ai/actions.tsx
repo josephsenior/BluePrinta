@@ -1,6 +1,6 @@
 'use server';
 
-import { createStreamableUI } from 'ai/rsc';
+import { createStreamableUI } from '@ai-sdk/rsc';
 import { geminiModel } from './provider';
 import { generateText } from 'ai';
 import { ReactNode } from 'react';
