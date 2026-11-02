@@ -24,6 +24,7 @@ import type { MetaSOPResult } from "@/lib/metasop/types"
 
 interface ProjectChatPanelProps {
     diagramId?: string
+    model?: string
     artifacts: MetaSOPResult["artifacts"]
     activeTab?: string
     initialHistory?: ChatHistoryMessage[]
@@ -33,6 +34,7 @@ interface ProjectChatPanelProps {
 
 export function ProjectChatPanel({
     diagramId,
+    model,
     artifacts,
     activeTab = "all",
     initialHistory = [],
@@ -220,6 +222,7 @@ export function ProjectChatPanel({
                     question,
                     contextMarkdown,
                     activeTab,
+                    model,
                     cacheId,
                     conversationHistory: conversationHistory || undefined
                 })
@@ -362,7 +365,8 @@ export function ProjectChatPanel({
                         .slice(-6)
                         .map(m => `${m.role.toUpperCase()}: ${m.content}`)
                         .join("\n\n"),
-                    activeTab
+                    activeTab,
+                    model,
                 }),
                 headers: { "Content-Type": "application/json" },
             })

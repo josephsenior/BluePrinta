@@ -3,6 +3,14 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { Logo } from "@/components/ui/Logo"
+import { Button } from "@/components/ui/button"
+import { Menu, Plus } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function DashboardHeader() {
   return (
@@ -37,6 +45,27 @@ export function DashboardHeader() {
 
           <div className="flex items-center gap-4">
             <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open navigation">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/diagrams">My Diagrams</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/create" className="font-medium">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Diagram
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

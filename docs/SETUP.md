@@ -1,6 +1,8 @@
 # Setup Guide
 
-This guide covers local setup for **open-source usage** — no remote database, auth, or paid APIs required.
+This guide covers local, single-user setup. Blueprinta stores its database on your machine and does not require an account with this app, but generation uses your own Gemini API key.
+
+> **Privacy and cost:** prompts, attachments, and generated context are sent to the configured Gemini model. Gemini usage may be billable under your Google account. Do not add secrets or data you are not permitted to send to that provider.
 
 ---
 
@@ -9,7 +11,7 @@ This guide covers local setup for **open-source usage** — no remote database, 
 - **Node.js** 18+ — [Download](https://nodejs.org/)
 - **pnpm** — Install with `npm install -g pnpm`
 - **Git** — [Download](https://git-scm.com/)
-- **Gemini API Key** — Free at [Google AI Studio](https://aistudio.google.com/apikey)
+- **Gemini API Key** — Create one at [Google AI Studio](https://aistudio.google.com/apikey); usage and availability depend on your Google plan.
 
 ---
 
@@ -37,7 +39,7 @@ GOOGLE_AI_API_KEY="your-google-ai-api-key"
 DATABASE_URL="file:./prisma/local.db"
 
 # Optional
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NEXT_PUBLIC_API_URL="/api"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
@@ -49,7 +51,7 @@ pnpm db:push        # Create local SQLite database
 pnpm dev            # Start dev server
 ```
 
-Open **[http://localhost:3000](http://localhost:3000)**. Diagrams are stored locally in `prisma/local.db` — no login or remote DB needed.
+Open **[http://localhost:3000](http://localhost:3000)**. Diagrams are stored locally in `prisma/local.db` — no login or remote database is needed. Keep the server on your own machine; this setup is not intended for shared or public hosting.
 
 ---
 
@@ -80,6 +82,10 @@ rm prisma/local.db          # or delete manually on Windows
 pnpm db:push
 ```
 
+### Backup before upgrading
+
+Stop the app and copy `prisma/local.db` to a safe location before updating Blueprinta or changing its database schema. You can also export individual diagrams from the app.
+
 ---
 
 ## Environment Variables
@@ -95,10 +101,10 @@ pnpm db:push
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3000/api` | API base URL |
+| `NEXT_PUBLIC_API_URL` | `/api` | API base URL |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | App URL |
 | `METASOP_LLM_PROVIDER` | `gemini` | LLM provider (`gemini` or `mock`) |
-| `METASOP_LLM_MODEL` | `gemini-3-flash-preview` | Override LLM model |
+| `METASOP_LLM_MODEL` | `gemini-3.7-flash` | Override LLM model |
 | `METASOP_AGENT_TIMEOUT` | `180000` | Agent timeout in ms |
 | `METASOP_AGENT_RETRIES` | `0` | Number of retries on failure |
 
@@ -110,6 +116,7 @@ pnpm db:push
 
 - **Never commit `.env`** if it contains API keys. The file is listed in `.gitignore` by default.
 - The SQLite file (`prisma/local.db`) is local to your machine with no network exposure.
+- Keep the development server on `localhost`. If you deliberately expose it to a network, treat it as an unsupported deployment and add real authentication, rate limiting, and durable job storage first.
 
 ---
 

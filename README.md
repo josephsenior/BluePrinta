@@ -18,7 +18,7 @@
 
 Instead of ending with a long agent transcript, BluePrinta turns model outputs into **validated, structured artifacts** that can be rendered, refined, streamed, persisted, and exported.
 
-> **Project status:** active beta and reference implementation. Local use requires your own Gemini API key and self-managed data storage; this repository is not a hosted service.
+> **Project status:** active beta and reference implementation. Run locally with a Gemini API key or sign in with your ChatGPT account. This repository is not a hosted service.
 
 [⚡ Quick Start](#-quick-start) · [✨ Features](#-key-features) · [🏗️ Architecture](#️-architecture) · [📚 Documentation](#-documentation) · [🤝 Contributing](#-contributing) · [🗺️ Roadmap](#️-roadmap)
 
@@ -186,6 +186,7 @@ Open `http://localhost:3000`.
 - **Node.js 18+**
 - **pnpm**
 - **Gemini API key**
+- Or a **ChatGPT account** connected from the app’s model selector
 - **Git**
 
 ### Configuration
@@ -263,7 +264,8 @@ On Windows, `pnpm build` may encounter an **EPERM symlink** error when Next.js g
 | [Setup Guide](docs/SETUP.md) | Install, configure, and run locally |
 | [Architecture](docs/ARCHITECTURE.md) | System design and agent pipeline |
 | [API Reference](docs/API.md) | REST endpoints and examples |
-| [LLM Configuration](docs/LLM-PROVIDERS.md) | Gemini setup and model selection |
+| [LLM Configuration](docs/LLM-PROVIDERS.md) | Gemini and ChatGPT setup and model selection |
+| [ChatGPT plan integration](docs/CHATGPT-PLAN.md) | Use your ChatGPT subscription for local generation |
 | [Deployment](docs/DEPLOYMENT.md) | Deployment guidance |
 | [Testing](docs/TESTING.md) | Unit and integration testing |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and fixes |
@@ -321,7 +323,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ### Next
 
-- [ ] Additional LLM providers
 - [ ] Deeper analytics and generation insights
 - [ ] Extended artifact editing operations
 - [ ] Stronger evaluation of cross-agent consistency

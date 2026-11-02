@@ -643,6 +643,7 @@ export default function DiagramViewPage({ params }: { params: Promise<{ id: stri
                 <div className="hidden lg:block w-96 shrink-0 h-full min-h-[648px] max-h-[1048px] sticky top-8">
                   <ProjectChatPanel
                     diagramId={diagram.id}
+                    model={diagram.metadata?.options?.model}
                     artifacts={artifacts}
                     activeTab={activeArtifactTab}
                     initialHistory={diagram.metadata?.chat_history}
@@ -667,6 +668,7 @@ export default function DiagramViewPage({ params }: { params: Promise<{ id: stri
                   <SheetContent side="right" className="p-0 w-[90%] sm:w-[400px]">
                     <ProjectChatPanel
                       diagramId={diagram.id}
+                      model={diagram.metadata?.options?.model}
                       artifacts={artifacts}
                       activeTab={activeArtifactTab}
                       initialHistory={diagram.metadata?.chat_history}

@@ -16,7 +16,8 @@ import { ProjectChatPanel } from "@/components/chat/ProjectChatPanel"
 import { useDiagramGeneration } from "@/hooks/use-diagram-generation"
 import { diagramsApi } from "@/lib/api/diagrams"
 import { generateAgentContextMarkdown } from "@/lib/metasop/utils/export-context"
-import { downloadFile } from "@/lib/utils"
+import { downloadBlob, downloadFile } from "@/lib/utils"
+import { fetchDiagramApi } from "@/lib/api/diagram-fetch"
 // useSearchParams requires special Suspense handling in some Next.js setups.
 // Read search params directly from `window.location` on the client to avoid
 // introducing a Suspense boundary in this client page.
@@ -141,6 +142,47 @@ export default function CreateDiagramPage() {
     toast({ title: "Context Exported", description: "Markdown context downloaded for AI usage." })
   }
 
+  const handleDocumentExport = async (exportType: string) => {
+    if (!currentDiagram?.id) return
+
+    const exports: Record<string, { artifact: string; format?: string; label: string }> = {
+      markdown: { artifact: "documentation", format: "markdown", label: "Markdown" },
+      pdf: { artifact: "documentation", format: "pdf", label: "PDF" },
+      pptx: { artifact: "documentation", format: "pptx", label: "PowerPoint" },
+      openapi: { artifact: "openapi", label: "OpenAPI specification" },
+      sql: { artifact: "sql", format: "migration", label: "SQL migration" },
+      erd: { artifact: "erd", format: "mermaid", label: "ERD diagram" },
+      adr: { artifact: "adr", label: "ADR document" },
+      testPlan: { artifact: "test-plan", label: "test plan" },
+    }
+    const config = exports[exportType]
+    if (!config) return
+
+    const progressToast = toast({ title: `Preparing ${config.label}…`, description: "Your download will start automatically." })
+    try {
+      const search = new URLSearchParams({ artifact: config.artifact })
+      if (config.format) search.set("format", config.format)
+      const response = await fetchDiagramApi(`/api/diagrams/${currentDiagram.id}/export?${search.toString()}`)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.message || "Export failed")
+      }
+
+      const blob = await response.blob()
+      const disposition = response.headers.get("content-disposition")
+      const filename = disposition?.match(/filename="?([^";]+)"?/)?.[1] || `${currentDiagram.title || "blueprinta-export"}.${config.format || "json"}`
+      downloadBlob(blob, filename)
+      progressToast.update({ id: progressToast.id, title: `${config.label} ready`, description: "Your download has started." })
+    } catch (error) {
+      progressToast.update({
+        id: progressToast.id,
+        title: "Export failed",
+        description: error instanceof Error ? error.message : "Unable to create the export.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleSelectTemplate = (template: any) => {
     setPrompt(template.prompt)
     toast({
@@ -161,6 +203,7 @@ export default function CreateDiagramPage() {
           onToggleChat={() => setIsChatOpen(!isChatOpen)}
           onSave={handleSave}
           onExportContext={handleExportContext}
+          onExportDocument={handleDocumentExport}
         />
 
         <main className="flex-1 min-h-0 relative">
@@ -284,6 +327,7 @@ export default function CreateDiagramPage() {
                 <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
                   <ProjectChatPanel
                     diagramId={currentDiagram?.id}
+                    model={currentDiagram?.metadata?.options?.model}
                     artifacts={currentDiagram?.metadata?.metasop_artifacts || {}}
                     activeTab={activeTab}
                     initialHistory={currentDiagram?.metadata?.chat_history}
@@ -306,6 +350,7 @@ export default function CreateDiagramPage() {
                   <SheetContent side="right" className="p-0 w-[90%] sm:w-[400px]">
                     <ProjectChatPanel
                       diagramId={currentDiagram.id}
+                      model={currentDiagram.metadata?.options?.model}
                       artifacts={currentDiagram.metadata?.metasop_artifacts || {}}
                       activeTab={activeTab}
                       onRefineComplete={handleRefineComplete}

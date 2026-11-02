@@ -8,13 +8,13 @@ export const artifactStyles = {
   typography: {
     // Headers - Reduced sizes
     h1: "text-lg font-bold tracking-tight", // Main title (18px)
-    h2: "text-base font-semibold tracking-tight", // Section title (16px)
-    h3: "text-sm font-semibold", // Subsection (14px)
+    h2: "text-xl font-semibold tracking-tight", // Section title (16px)
+    h3: "text-base font-semibold", // Subsection (14px)
     h4: "text-sm font-medium", // Card title (14px)
 
     // Body text - Compact but readable
     body: "text-sm leading-relaxed", // Main content (14px)
-    bodySmall: "text-xs leading-relaxed", // Secondary content (12px)
+    bodySmall: "text-sm leading-relaxed", // Secondary content (12px)
     bodyTiny: "text-[11px] leading-relaxed", // Tertiary content (11px)
 
     // Labels and badges
@@ -39,16 +39,16 @@ export const artifactStyles = {
     gapLarge: "gap-3", // Large gap
   },
 
-  // Colors - Better contrast
+  // Colors - Theme-aware contrast for light and dark modes
   colors: {
     text: "text-foreground",
-    textMuted: "text-muted-foreground dark:text-muted-foreground/90", // Improved dark mode contrast
-    textSubtle: "text-muted-foreground/70 dark:text-muted-foreground/80",
-    bg: "bg-black",
-    bgMuted: "bg-neutral-900/60",
-    bgCard: "bg-neutral-950/80",
+    textMuted: "text-muted-foreground",
+    textSubtle: "text-muted-foreground/70",
+    bg: "bg-background",
+    bgMuted: "bg-muted/60",
+    bgCard: "bg-card",
     border: "border-border",
-    borderMuted: "border-border/50 dark:border-border/60", // Better contrast
+    borderMuted: "border-border/50",
   },
 
   // Badge sizes - Compact
@@ -68,7 +68,7 @@ export const artifactStyles = {
   // Standardized layouts
   layout: {
     container: "mx-auto w-full px-4",
-    header: "p-3 sm:p-4 border-b border-border/40 bg-muted/10",
+    header: "p-5 sm:p-6 border-b border-border/40 bg-gradient-to-br from-primary/5 via-background to-background",
     section: "p-4 space-y-6",
     // Flexible responsive grid for StatsCards - adapts to content
     statsGrid: "grid gap-3" + " " + "grid-cols-[repeat(auto-fit,minmax(min(140px,100%),1fr))]",

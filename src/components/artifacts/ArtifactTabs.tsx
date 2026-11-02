@@ -19,13 +19,13 @@ import { cn } from "@/lib/utils"
 export const agentTabs = [
     { id: "summary", label: "Summary", icon: LayoutDashboard, color: "text-blue-500", bgColor: "bg-blue-500/10" },
     { id: "estimates", label: "Estimates", icon: TrendingUp, color: "text-orange-600", bgColor: "bg-orange-500/10" },
-    { id: "pm_spec", label: "PM Spec", icon: FileText, color: "text-blue-600", bgColor: "bg-blue-500/10" },
+    { id: "pm_spec", label: "Product Manager", icon: FileText, color: "text-blue-600", bgColor: "bg-blue-500/10" },
     { id: "arch_design", label: "Architect", icon: FileText, color: "text-blue-600", bgColor: "bg-blue-500/10" },
     { id: "devops_infrastructure", label: "DevOps", icon: Server, color: "text-green-600", bgColor: "bg-green-500/10" },
     { id: "security_architecture", label: "Security", icon: Shield, color: "text-red-600", bgColor: "bg-red-500/10" },
     { id: "ui_design", label: "UI Designer", icon: Palette, color: "text-pink-600", bgColor: "bg-pink-500/10" },
     { id: "engineer_impl", label: "Engineer", icon: Code, color: "text-orange-600", bgColor: "bg-orange-500/10" },
-    { id: "qa_verification", label: "QA", icon: CheckCircle, color: "text-teal-600", bgColor: "bg-teal-500/10" },
+    { id: "qa_verification", label: "QA Engineer", icon: CheckCircle, color: "text-teal-600", bgColor: "bg-teal-500/10" },
 ]
 
 function getArtifactMeta(tabId: string, artifact: any) {

@@ -100,7 +100,6 @@ function resolveDatabaseUrl(): string {
     }
   }
   const resolved = pathToFileURL(absolutePath).href;
-  process.env.DATABASE_URL = resolved;
   return resolved;
 }
 

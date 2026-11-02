@@ -4,10 +4,11 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { getRequestHeaders } from "./request-headers";
+import { resolveApiBaseUrl } from "./base-url";
 
 // Create axios instance (guest session only; no auth)
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
+  baseURL: resolveApiBaseUrl(process.env.NEXT_PUBLIC_API_URL, typeof window === "undefined" ? undefined : window.location.href),
   headers: {
     "Content-Type": "application/json",
   },

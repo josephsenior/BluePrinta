@@ -31,7 +31,7 @@ export interface MetaSOPConfig {
 
   // LLM settings (single provider for now)
   llm: {
-    provider?: "gemini" | "mock";
+    provider?: "gemini" | "mock" | "chatgpt";
     apiKey?: string;
     model?: string;
     temperature?: number;
@@ -107,7 +107,7 @@ export const defaultConfig: MetaSOPConfig = {
   },
   llm: {
     provider: "gemini",
-    model: "gemini-3.1-pro-preview",
+    model: "gemini-3.7-flash",
     temperature: 0.2,
     maxTokens: 64000,
   },

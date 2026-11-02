@@ -1,6 +1,7 @@
 "use client"
 
-import { useRef } from "react"
+import { useCallback, useRef, useState } from "react"
+import { ChatGPTSettings } from "./ChatGPTSettings"
 import {
     Sparkles,
     HelpCircle,
@@ -66,6 +67,10 @@ export function PromptInput({
 }: PromptInputProps) {
     // input is always visible; collapse control removed per UX request
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const [chatModels, setChatModels] = useState<{ slug: string; display_name: string }[] | null>(null)
+    const handleChatModels = useCallback((models: { slug: string; display_name: string }[]) => {
+        setChatModels(models)
+    }, [])
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -78,6 +83,7 @@ export function PromptInput({
         <div className="absolute bottom-0 left-0 right-0 z-40 p-4">
             <div className="max-w-3xl mx-auto">
                 <div className="rounded-xl border border-border/60 bg-card/80 backdrop-blur-sm shadow-lg overflow-hidden relative">
+                    <ChatGPTSettings onModels={handleChatModels} />
                     <Textarea
                         id="prompt"
                         aria-label="Describe your application"
@@ -129,10 +135,11 @@ export function PromptInput({
                                     <SelectValue placeholder="Model" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-background/95 backdrop-blur-xl border-border/50">
-                                    <SelectItem value="gemini-3.5-flash" className="text-xs cursor-pointer">
+                                    <>
+                                    <SelectItem value="gemini-3.7-flash" className="text-xs cursor-pointer">
                                         <div className="flex items-center gap-2">
                                             <Zap className="h-3 w-3 text-amber-500" />
-                                            Gemini 3.5 Flash
+                                            Gemini 3.7 Flash
                                         </div>
                                     </SelectItem>
                                     <SelectItem value="gemini-3.1-pro-preview" className="text-xs cursor-pointer">
@@ -141,6 +148,8 @@ export function PromptInput({
                                             Gemini 3.1 Pro
                                         </div>
                                     </SelectItem>
+                                    </>
+                                    {(chatModels?.some(model => model.slug === "gpt-6.1-terra") ? chatModels : [{ slug: "gpt-6.1-terra", display_name: "GPT-6.1 Terra" }, ...(chatModels || [])]).map(model => <SelectItem key={model.slug} value={model.slug}>{model.display_name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
 

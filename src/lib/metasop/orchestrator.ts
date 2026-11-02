@@ -123,6 +123,7 @@ export class MetaSOPOrchestrator {
       includeStateManagement?: boolean;
       includeAPIs?: boolean;
       includeDatabase?: boolean;
+      model?: string;
       reasoning?: boolean;
     },
     onProgress?: (event: MetaSOPEvent) => void,
@@ -130,6 +131,7 @@ export class MetaSOPOrchestrator {
     clarificationAnswers?: Record<string, string>
   ): Promise<MetaSOPResult> {
     const startTime = Date.now();
+    const model = options?.model || this.config.llm.model;
     
     // Create debug session for this generation run
     this.debugSession = createDebugSession(user_request);
@@ -137,7 +139,7 @@ export class MetaSOPOrchestrator {
     
     logger.info("Starting MetaSOP Orchestration", {
       agents: this.config.agents.enabled.length,
-      model: this.config.llm.model,
+      model,
       reasoning: options?.reasoning ?? false,
       debugSessionId: this.debugSession.sessionId,
       hasClarification: !!clarificationAnswers && Object.keys(clarificationAnswers).length > 0,
@@ -163,7 +165,7 @@ export class MetaSOPOrchestrator {
       context.previous_artifacts.pm_spec = this.artifacts.pm_spec;
 
       // START CONTEXT CACHING: Create base cache after PM spec is ready
-      if (this.config.llm.provider === "gemini" && this.config.performance.cacheEnabled) {
+      if (model?.startsWith("gemini-") && this.config.performance.cacheEnabled) {
         try {
           // Format documents for context if they exist
           const documentsSection = documents && documents.length > 0
@@ -182,7 +184,7 @@ ${JSON.stringify(this.artifacts.pm_spec?.content, null, 2)}
             cacheContent,
             "You are a professional software development team. This is a shared context cache for collaborative agent work. Use it to avoid redundancy.",
             3600,
-            this.config.llm.model
+            model
           );
           logger.info("Orchestrator created base context cache", { cacheId: this.cacheId });
         } catch (cacheError) {
@@ -200,7 +202,7 @@ ${JSON.stringify(this.artifacts.pm_spec?.content, null, 2)}
       context.previous_artifacts.arch_design = this.artifacts.arch_design;
 
       // UPDATE CACHE: After Architect, the context grows significantly. 
-      if (this.config.llm.provider === "gemini" && this.config.performance.cacheEnabled) {
+      if (model?.startsWith("gemini-") && this.config.performance.cacheEnabled) {
         try {
           // Format documents for context if they exist
           const documentsSection = documents && documents.length > 0
@@ -222,7 +224,7 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
             deepCacheContent,
             "You are a professional software development team. This is deep shared context including architecture design. Reference this to ensure technical consistency across all agents.",
             3600,
-            this.config.llm.model
+            model
           );
           this.cacheId = newCacheId;
           context.cacheId = this.cacheId;
@@ -356,7 +358,7 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
       });
     }
 
-    const options = this.getExecutionOptions(stepId, role);
+    const options = this.getExecutionOptions(stepId, role, context?.options?.model);
 
     // Capture last partial/artifact so we can send it on timeout for UI display
     let lastPartialForStep: string | BackendArtifactData | null = null;
@@ -540,11 +542,13 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
   /**
    * Get execution options for a specific agent
    */
-  private getExecutionOptions(stepId: string, role: string) {
+  private getExecutionOptions(stepId: string, role: string, model?: string) {
     const { agentConfigs, defaultTimeout, defaultRetries } = this.config.agents;
     const agentConfig = agentConfigs[stepId];
 
-    const timeout = agentConfig?.timeout || defaultTimeout;
+    const baseTimeout = agentConfig?.timeout || defaultTimeout;
+    const selectedModel = model || this.config.llm.model;
+    const timeout = selectedModel && !selectedModel.startsWith("gemini-") && this.config.llm.provider !== "mock" ? Math.max(baseTimeout, 600000) : baseTimeout;
     const retries = agentConfig?.retries || defaultRetries;
 
     // Create retry policy
@@ -612,49 +616,49 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
         case "pm_spec": {
           const result = safeValidateProductManagerArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `PM: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `PM: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "arch_design": {
           const result = safeValidateArchitectArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `Architect: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `Architect: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "engineer_impl": {
           const result = safeValidateEngineerArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `Engineer: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `Engineer: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "qa_verification": {
           const result = safeValidateQAArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `QA: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `QA: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "devops_infrastructure": {
           const result = safeValidateDevOpsArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `DevOps: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `DevOps: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "security_architecture": {
           const result = safeValidateSecurityArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `Security: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `Security: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "ui_design": {
           const result = safeValidateUIDesignerArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `UI Designer: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `UI Designer: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }

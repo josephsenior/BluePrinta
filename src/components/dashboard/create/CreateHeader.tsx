@@ -9,6 +9,8 @@ import {
     Save,
     Plus,
     Trash,
+    Download,
+    FileText,
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { diagramsApi } from "@/lib/api/diagrams"
@@ -28,6 +30,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils"
 import { HeaderActionsMenu } from "./HeaderActionsMenu"
 import type { DiagramData } from "@/hooks/use-diagram-generation"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface CreateHeaderProps {
     isAuthenticated: boolean
@@ -38,6 +46,7 @@ interface CreateHeaderProps {
     onToggleChat: () => void
     onSave: () => void
     onExportContext: () => void
+    onExportDocument: (exportType: string) => void
 }
 
 export function CreateHeader({
@@ -48,7 +57,8 @@ export function CreateHeader({
     onToggleLeftPanel,
     onToggleChat,
     onSave,
-    onExportContext
+    onExportContext,
+    onExportDocument
 }: CreateHeaderProps) {
     const router = useRouter()
     const { toast } = useToast()
@@ -216,6 +226,52 @@ export function CreateHeader({
                                     Delete Diagram
                                 </TooltipContent>
                             </Tooltip>
+
+                            <div className="w-px h-4 bg-border/50 mx-0.5" />
+
+                            {/* Expose document downloads directly in the workspace. */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 gap-1.5 rounded-lg text-foreground hover:bg-muted transition-all">
+                                        <Download className="h-4 w-4" />
+                                        <span className="hidden md:inline">Export</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => onExportDocument("markdown")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Markdown
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("pdf")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("pptx")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        PowerPoint
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("openapi")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        OpenAPI specification
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("sql")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        SQL migration
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("erd")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        ERD diagram
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("adr")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        ADR document
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onExportDocument("testPlan")}>
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Test plan
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
                             <div className="w-px h-4 bg-border/50 mx-0.5" />
 

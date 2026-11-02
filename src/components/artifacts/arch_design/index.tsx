@@ -1,5 +1,7 @@
 'use client'
 
+import { ArtifactSectionNav as ArtifactTabBar, ArtifactSectionLink as TabTrigger } from "@/components/artifacts/ArtifactSection"
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -24,8 +26,6 @@ import { artifactStyles as styles } from "../shared-styles"
 import {
   StatsCard,
   ArtifactHeaderBlock,
-  ArtifactTabBar,
-  TabTrigger,
   EmptyStateCard,
 } from "../shared-components"
 

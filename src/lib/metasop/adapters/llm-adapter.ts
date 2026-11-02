@@ -274,6 +274,12 @@ export function createLLMProvider(provider?: "gemini" | "openai" | "mock" | "ver
       const { VercelAILlmProvider } = require("./vercel-ai-adapter");
       return new VercelAILlmProvider(undefined, model);
     }
+    case "chatgpt": {
+      const { ChatGPTPlanProvider } = require("./chatgpt-plan-adapter");
+      const { getAccessToken } = require("../../chatgpt/session");
+      const { getConfig } = require("../config");
+      return new ChatGPTPlanProvider(getAccessToken, getConfig().llm.model);
+    }
     case "openai": {
       // Stub for OpenAI - can be implemented fully if needed
       throw new Error("OpenAI provider not yet implemented. Use 'gemini' or 'mock'.");

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { RefreshCcw } from "lucide-react"
-import { TabsContent } from "@/components/ui/tabs"
+import { ArtifactSection as TabsContent } from "@/components/artifacts/ArtifactSection"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"

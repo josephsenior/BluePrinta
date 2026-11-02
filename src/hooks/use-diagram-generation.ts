@@ -140,7 +140,7 @@ export function useDiagramGeneration() {
     const [isGenerating, setIsGenerating] = useState(false)
     const [isScoping, setIsScoping] = useState(false)
     const [guidedMode, setGuidedMode] = useState(false)
-    const [selectedModel, setSelectedModel] = useState("gemini-3.5-flash")
+    const [selectedModel, setSelectedModel] = useState("gemini-3.7-flash")
     const [isReasoningEnabled, setIsReasoningEnabled] = useState(false)
 
     const [clarificationQuestions, setClarificationQuestions] = useState<ClarificationQuestion[] | null>(null)
@@ -167,6 +167,11 @@ export function useDiagramGeneration() {
             if (savedPrompt) setPrompt(savedPrompt)
 
             const savedModel = localStorage.getItem("metasop_selected_model")
+            if (!savedModel) {
+                void fetch("/api/chatgpt").then(response => response.ok ? response.json() : null).then(data => {
+                    if (data?.defaultModel) setSelectedModel(data.defaultModel)
+                }).catch(() => {})
+            }
             if (savedModel) {
                 const resolved = resolveGeminiModel(savedModel) ?? savedModel
                 setSelectedModel(resolved)
@@ -233,6 +238,24 @@ export function useDiagramGeneration() {
     }, [])
 
     const handleFileUpload = async (file: File) => {
+        const maxDocumentBytes = 1_000_000
+        const maxDocuments = 10
+        if (uploadedDocuments.length >= maxDocuments) {
+            toast({
+                title: "Document limit reached",
+                description: `Attach up to ${maxDocuments} documents per generation.`,
+                variant: "destructive",
+            })
+            return
+        }
+        if (file.size > maxDocumentBytes) {
+            toast({
+                title: "Document too large",
+                description: "Attach documents smaller than 1 MB.",
+                variant: "destructive",
+            })
+            return
+        }
         setIsUploading(true)
         try {
             const reader = new FileReader()
@@ -476,6 +499,19 @@ export function useDiagramGeneration() {
                 description: "Please provide at least 20 characters for better results",
                 variant: "destructive",
             })
+            return
+        }
+
+        if (trimmedPrompt.length > 50_000) {
+            toast({
+                title: "Prompt too long",
+                description: "Keep prompts to 50,000 characters or fewer.",
+                variant: "destructive",
+            })
+            return
+        }
+
+        if (!window.confirm("Generation sends your prompt and attached documents to Gemini and may use billable API tokens. Continue?")) {
             return
         }
 

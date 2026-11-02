@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
       intent: body.intent,
       artifacts,
       chatHistory: body.chatHistory,
-      activeTab: body.activeTab
+      activeTab: body.activeTab,
+      model: body.model,
     };
 
     if (useStreaming) {
@@ -139,7 +140,7 @@ async function handleStreamingRefinement(
           timestamp: Date.now()
         });
 
-        const result = await applyBatchUpdate(editPlan, context.artifacts);
+        const result = await applyBatchUpdate(editPlan, context.artifacts, context.model);
 
 
         // Merge with original artifacts (preserve unchanged ones)
@@ -238,7 +239,7 @@ async function handleSyncRefinement(
   }
 
   // Layer 2: Apply changes
-  const result = await applyBatchUpdate(editPlan, context.artifacts);
+  const result = await applyBatchUpdate(editPlan, context.artifacts, context.model);
   const mergedContent = mergeArtifacts(context.artifacts, result.updated_artifacts);
 
   // Re-wrap

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion } from "framer-motion"
-import { TabsContent } from "@/components/ui/tabs"
+import { ArtifactSection as TabsContent } from "@/components/artifacts/ArtifactSection"
 import { BookOpen, Layers, Share2, Database, Network, ShieldCheck, Zap } from "lucide-react"
 import { PhilosophySection, BlueprintHeader } from "../sub-components"
 import {

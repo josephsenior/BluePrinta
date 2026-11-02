@@ -1,5 +1,7 @@
 'use client'
 
+import { ArtifactSectionNav as ArtifactTabBar, ArtifactSectionLink as TabTrigger } from "@/components/artifacts/ArtifactSection"
+
 import * as React from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,8 +33,6 @@ import { artifactStyles as styles } from "../shared-styles"
 import {
   StatsCard,
   ArtifactHeaderBlock,
-  ArtifactTabBar,
-  TabTrigger,
   EmptyStateCard,
   itemVariants as item
 } from "../shared-components"

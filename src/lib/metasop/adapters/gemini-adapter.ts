@@ -124,11 +124,11 @@ function extractJsonFromMarkdown(text: string): string {
 export class GeminiLLMProvider implements LLMProvider {
   private apiKey: string;
   private baseUrl: string = "https://generativelanguage.googleapis.com/v1beta";
-  private defaultModel: string = "gemini-3.5-flash";
+  private defaultModel: string = "gemini-3.7-flash";
 
   constructor(apiKey: string, model?: string) {
     this.apiKey = (apiKey || process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY || "").trim();
-    this.defaultModel = resolveGeminiModel(model ?? "gemini-3.5-flash") ?? "gemini-3.5-flash";
+    this.defaultModel = resolveGeminiModel(model ?? "gemini-3.7-flash") ?? "gemini-3.7-flash";
   }
 
   private resolveModel(options?: LLMOptions): string {

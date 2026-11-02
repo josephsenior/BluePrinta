@@ -1,5 +1,5 @@
 import type { Diagram } from "@/types/diagram"
-import { getAllArtifactsContent, stringifyArtifact } from "@/lib/generators/artifact-serialization"
+import { DocumentationGenerator } from "@/lib/generators/documentation-generator"
 
 export class PDFGenerator {
   private diagram: Diagram
@@ -8,9 +8,6 @@ export class PDFGenerator {
     this.diagram = diagram
   }
 
-  /**
-   * Data-only output: a PDF containing only the serialized MetaSOP artifacts.
-   */
   async generatePDF(): Promise<Blob> {
     const { jsPDF } = await import("jspdf")
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
@@ -20,20 +17,27 @@ export class PDFGenerator {
     const margin = 15
     const maxWidth = pageWidth - 2 * margin
 
-    doc.setFontSize(9)
-    doc.setFont("helvetica", "normal")
-
-    const text = stringifyArtifact(getAllArtifactsContent(this.diagram))
-    const lines = doc.splitTextToSize(text, maxWidth)
+    const lines = new DocumentationGenerator(this.diagram).generateMarkdown().split("\n")
 
     let y = margin
     for (const line of lines) {
-      if (y > pageHeight - margin) {
+      const isH1 = line.startsWith("# ")
+      const isH2 = line.startsWith("## ")
+      const isH3 = line.startsWith("### ")
+      const displayLine = line.replace(/^#{1,3}\s/, "")
+      doc.setFont("helvetica", isH1 || isH2 || isH3 ? "bold" : "normal")
+      doc.setFontSize(isH1 ? 18 : isH2 ? 14 : isH3 ? 11 : 9)
+      const wrappedLines = doc.splitTextToSize(displayLine, maxWidth)
+      const lineHeight = isH1 ? 8 : isH2 ? 6 : isH3 ? 5 : 4
+      if (y + wrappedLines.length * lineHeight > pageHeight - margin) {
         doc.addPage()
         y = margin
       }
-      doc.text(String(line), margin, y)
-      y += 4
+      for (const wrappedLine of wrappedLines) {
+        doc.text(String(wrappedLine), margin, y)
+        y += lineHeight
+      }
+      if (isH1 || isH2 || isH3) y += 2
     }
 
     return doc.output("blob")

@@ -19,6 +19,7 @@ export function calculateGeminiCost(model: string, usage: GeminiUsage): number {
     "gemini-3.1-pro-preview": { input: 1.25, output: 5.0, cached: 0.3125 },
     "gemini-3-pro-preview": { input: 1.25, output: 5.0, cached: 0.3125 },
     "gemini-3.5-flash": { input: 0.1, output: 0.4, cached: 0.025 },
+    "gemini-3.7-flash": { input: 0.1, output: 0.4, cached: 0.025 },
     "gemini-3-flash-preview": { input: 0.1, output: 0.4, cached: 0.025 },
     "gemini-2.0-flash": { input: 0.1, output: 0.4, cached: 0.025 },
     "gemini-2.5-flash-native-audio-dialog": { input: 0.1, output: 0.4, cached: 0.025 },
@@ -28,9 +29,10 @@ export function calculateGeminiCost(model: string, usage: GeminiUsage): number {
   const isFlash2 = model.toLowerCase().includes("gemini-2.0-flash");
   const isNativeAudio = model.toLowerCase().includes("native-audio");
 
-  let rates = pricing["gemini-3.5-flash"];
+  let rates = pricing["gemini-3.7-flash"];
   if (isPro) rates = pricing["gemini-3.1-pro-preview"];
   else if (model.includes("gemini-3.5")) rates = pricing["gemini-3.5-flash"];
+  else if (model.includes("gemini-3.7")) rates = pricing["gemini-3.7-flash"];
   else if (isFlash2) rates = pricing["gemini-2.0-flash"];
   else if (isNativeAudio) rates = pricing["gemini-2.5-flash-native-audio-dialog"];
   else if (model.includes("gemini-3")) rates = pricing["gemini-3-flash-preview"];
