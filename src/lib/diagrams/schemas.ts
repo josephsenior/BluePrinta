@@ -29,7 +29,7 @@ export const CreateDiagramSchema = z.object({
         reasoning: z.boolean().optional(),
     }).optional(),
     documents: z.array(UploadedDocumentSchema).max(MAX_DOCUMENTS, "Attach at most 10 documents").optional(),
-    clarificationAnswers: z.record(z.string().max(5_000)).optional(),
+    clarificationAnswers: z.record(z.string(), z.string().max(5_000)).optional(),
 });
 
 export const ScopeRequestSchema = z.object({
@@ -64,7 +64,7 @@ const EditOpSchema = z.discriminatedUnion("tool", [
 
 export const EditArtifactsSchema = z.object({
     diagramId: z.string().optional(),
-    previousArtifacts: z.record(z.any()),
+    previousArtifacts: z.record(z.string(), z.any()),
     edits: z.array(EditOpSchema).min(1, "At least one edit is required"),
 });
 
@@ -89,7 +89,7 @@ export function validateAskQuestionRequest(data: unknown) {
 export const RefineArtifactsSchema = z.object({
     diagramId: z.string().optional(),
     intent: z.string().min(1, "Intent is required"),
-    previousArtifacts: z.record(z.any()),
+    previousArtifacts: z.record(z.string(), z.any()),
     chatHistory: z.string().optional(),
     activeTab: z.string().optional(),
     model: z.string().max(100).optional(),

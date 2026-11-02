@@ -7,7 +7,7 @@ type CanonicalFileNode = {
     children?: CanonicalFileNode[];
 };
 
-const FileNodeSchema: z.ZodType<CanonicalFileNode, z.ZodTypeDef, any> = z.lazy(() =>
+const FileNodeSchema: z.ZodType<CanonicalFileNode> = z.lazy(() =>
     z
         .object({
             name: z.string().min(1, "File/folder name is required"),

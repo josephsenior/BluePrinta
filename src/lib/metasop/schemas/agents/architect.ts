@@ -14,8 +14,8 @@ const APISchema = z
         path: z.string().regex(/^\/.*/, "API path must start with /"),
         method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH"]),
         description: z.string().min(10, "API description must be at least 10 characters"),
-        request_schema: z.record(flexibleString).describe("A map of field names to their types"),
-        response_schema: z.record(flexibleString).describe("A map of field names to their types"),
+        request_schema: z.record(z.string(), flexibleString).describe("A map of field names to their types"),
+        response_schema: z.record(z.string(), flexibleString).describe("A map of field names to their types"),
         auth_required: z.boolean(),
         rate_limit: z.string().optional(),
     })
@@ -77,7 +77,7 @@ const IntegrationPointSchema = z
     .object({
         service: z.string().min(1, "Service name is required"),
         purpose: z.string().min(1, "Purpose is required"),
-        api_docs: z.string().url("API docs must be a valid URL").optional(),
+        api_docs: z.string().url({ error: "API docs must be a valid URL" }).optional(),
     })
     .strict();
 

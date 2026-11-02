@@ -616,49 +616,49 @@ ${JSON.stringify(this.artifacts.arch_design?.content, null, 2)}
         case "pm_spec": {
           const result = safeValidateProductManagerArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `PM: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `PM: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "arch_design": {
           const result = safeValidateArchitectArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `Architect: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `Architect: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "engineer_impl": {
           const result = safeValidateEngineerArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `Engineer: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `Engineer: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "qa_verification": {
           const result = safeValidateQAArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `QA: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `QA: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "devops_infrastructure": {
           const result = safeValidateDevOpsArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `DevOps: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `DevOps: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "security_architecture": {
           const result = safeValidateSecurityArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `Security: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `Security: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }
         case "ui_design": {
           const result = safeValidateUIDesignerArtifact(content);
           if (!result.success) {
-            errors.push(...result.error.errors.map((e) => `UI Designer: ${e.path.join(".")} - ${e.message}`));
+            errors.push(...result.error.issues.map((issue) => `UI Designer: ${issue.path.join(".")} - ${issue.message}`));
           }
           break;
         }

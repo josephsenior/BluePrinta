@@ -17,7 +17,7 @@ export class VercelAILlmProvider implements LLMProvider {
             model: google(this.modelId) as any,
             prompt,
             temperature: options?.temperature,
-            maxTokens: options?.maxTokens,
+            maxOutputTokens: options?.maxTokens,
         });
         return text;
     }
@@ -55,7 +55,7 @@ export class VercelAILlmProvider implements LLMProvider {
                 tools: {
                     [toolName]: {
                         description: "Generate the requested artifact with structured data",
-                        parameters: schema,
+                        inputSchema: schema,
                     }
                 },
                 // Don't force tool call - let model generate text first
@@ -72,11 +72,11 @@ export class VercelAILlmProvider implements LLMProvider {
 
                 if (part.type === 'text-delta') {
                     // This is the reasoning/thought stream!
-                    logger.info(`[VercelAI] Got text-delta: ${part.textDelta?.substring(0, 30)}`)
+                    logger.info(`[VercelAI] Got text-delta: ${part.text?.substring(0, 30)}`)
                     try {
                         onProgress({
                             type: "step_thought",
-                            thought: part.textDelta,
+                            thought: part.text,
                             timestamp: new Date().toISOString()
                         });
                     } catch (e: any) {
@@ -152,7 +152,7 @@ export class VercelAILlmProvider implements LLMProvider {
             }
 
             if (artifactCall) {
-                return artifactCall.args as T;
+                return artifactCall.input as T;
             }
 
             // If no tool was called, try to parse the text output as JSON
