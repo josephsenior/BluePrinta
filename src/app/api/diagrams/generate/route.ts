@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       if (error instanceof z.ZodError) {
         metrics.increment(MetricNames.API_ERROR, 1, { endpoint: "diagrams.generate", error: "validation" });
         return createErrorResponse(
-          `Invalid request: ${error.errors.map((e) => e.message).join(", ")}`,
+          `Invalid request: ${error.issues.map((issue) => issue.message).join(", ")}`,
           400,
           cookieOpt
         );

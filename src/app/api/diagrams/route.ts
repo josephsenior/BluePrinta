@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return createErrorResponse(
-          `Invalid request: ${error.errors.map((e) => e.message).join(", ")}`,
+          `Invalid request: ${error.issues.map((issue) => issue.message).join(", ")}`,
           400,
           cookieOpt
         );
